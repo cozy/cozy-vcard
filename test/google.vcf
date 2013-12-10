@@ -1,0 +1,24 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Test;Cozy;;;
+FN:Cozy Test
+EMAIL;TYPE=INTERNET;TYPE=WORK:cozytest@cozycloud.cc
+EMAIL;TYPE=INTERNET;TYPE=HOME:cozytest2@cozycloud.cc
+TEL;TYPE=CELL:0600000000
+TEL;TYPE=WORK:0610000000
+ADR;TYPE=HOME:;;1 Sample Adress;PARIS;;75001;FRANCE
+ADR;TYPE=WORK:;;2 Sample Address;PARIS;;75002;FRANCE
+ORG:Cozycloud
+TITLE:Testeur Fou
+BDAY:1989-02-02
+item1.URL:http\\://test.example.com
+item1.X-ABLabel:PROFILE
+item2.EMAIL;TYPE=INTERNET:test3@example.com
+item2.X-ABLabel:truc
+item3.X-ABDATE:2013-01-01
+item3.X-ABLabel:_$!<Anniversary>!$_
+item4.X-ABRELATEDNAMES:Cozypouet
+item4.X-ABLabel:_$!<Friend>!$_
+NOTE:Something
+TITLE:CEO
+END:VCARD

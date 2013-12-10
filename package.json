@@ -1,0 +1,30 @@
+{
+  "name": "cozy-vcard",
+  "version": "0.0.1",
+  "description": "Cozy-vcard provides vcard Parser and Objects",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha test/index.coffee --reporter spec --compilers coffee:coffee-script --colors",
+    "build": "coffee --compile --output lib/ src/",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mycozycloud/cozy-vcard"
+  },
+  "keywords": [
+    "ical",
+    "calendar"
+  ],
+  "author": "Cozy",
+  "license": "see LICENSE",
+  "readmeFilename": "README.md",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "coffee-script": "= 1.4.0",
+    "mocha": "~1.12.0",
+    "should": "~1.2.0",
+    "chai": "~1.7.2"
+  }
+}

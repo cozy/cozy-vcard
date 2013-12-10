@@ -1,0 +1,20 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Test;Cozy;;;
+FN:Cozy Test
+ORG:Cozycloud;
+TITLE:Testeur Fou
+EMAIL;type=INTERNET;type=WORK;type=pref:cozytest@cozycloud.cc
+EMAIL;type=INTERNET;type=HOME:cozytest2@cozycloud.cc
+TEL;type=CELL;type=pref:06 00 00 00 00
+TEL;type=CELL;type=WORK:06 00 00 00 00
+ADR;type=HOME;type=pref:;;43 rue blabla;Paris;;750000;France
+item1.ADR;type=WORK;type=pref:;;18 rue poulet;Paris;;75000;France
+item1.X-ABADR:fr
+BDAY;value=date:1999-02-01
+X-AIM;type=HOME;type=pref:cozypseudo
+item2.X-ABRELATEDNAMES;type=pref:Cozypouet
+item2.X-ABLabel:_$!<Friend>!$_
+X-ABUID:7EC63789-9F24-4F95-AF74-A85483437BC8\:ABPerson
+NOTE:Something
+END:VCARD
