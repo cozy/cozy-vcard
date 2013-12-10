@@ -4,5 +4,3 @@ node_js:
 env:
     global:
         - NODE_ENV=test
-before_install:
-    - mkdir log
