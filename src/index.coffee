@@ -19,6 +19,10 @@ ANDROID_RELATION_TYPES = ['custom', 'assistant', 'brother', 'child',
 
 module.exports = class VCardParser
 
+    constructor: (vcf) ->
+        @reset()
+        @read vcf if vcf
+
     reset: ->
         @contacts         = []
         @currentContact   = null
@@ -27,7 +31,6 @@ module.exports = class VCardParser
         @currentVersion   = "3.0"
 
     read: (vcf) ->
-        @reset()
         @handleLine line for line in vcf.split /\r?\n/
 
     handleLine: (line) ->
@@ -68,7 +71,7 @@ module.exports = class VCardParser
             return @currentversion = value
 
         if key in ['TITLE', 'ORG', 'FN', 'NOTE', 'N', 'BDAY']
-            return @currentContact[key] = value
+            return @currentContact[key.toLowerCase()] = value
 
     # handle android-android lines (cursor.item)
     #@TODO support other possible cursors
@@ -105,19 +108,16 @@ module.exports = class VCardParser
         properties = part.splice 1
 
         value = value.split(';')
-        value = value[0] if value.length is 1
+        if value.length is 1
+            value = value[0].replace('_$!<', '')
+            .replace('>!$_', '').replace('\\:', ':')
 
         key = key.toLowerCase()
 
         if key is 'x-ablabel' or key is 'x-abadr'
-            value = value.replace '_$!<', ''
-            value = value.replace '>!$_', ''
             @currentDatapoint['type'] = value.toLowerCase()
         else
             @handleProperties @currentDatapoint, properties
-
-            if key is 'adr'
-                value = value.join("\n").replace /\n+/g, "\n"
 
             if key is 'x-abdate'
                 key = 'about'
@@ -126,7 +126,7 @@ module.exports = class VCardParser
                 key = 'other'
 
             @currentDatapoint['name'] = key.toLowerCase()
-            @currentDatapoint['value'] = value.replace "\\:", ":"
+            @currentDatapoint['value'] = value
 
     handleComplexLine: (line) ->
         [all, key, properties, value] = line.match regexps.complex
@@ -142,8 +142,13 @@ module.exports = class VCardParser
         if key in ['email', 'tel', 'adr', 'url']
             @currentDatapoint['name'] = key
             # value = value.join("\n").replace /\n+/g, "\n"
+        else if key is 'BDAY'
+            @currentContact['BDAY'] = value
+            @currentDatapoint = null
+            return
         else
             #@TODO handle unkwnown keys
+            @currentDatapoint = null
             return
 
         @handleProperties @currentDatapoint, properties.split ';'
@@ -156,6 +161,7 @@ module.exports = class VCardParser
             # property is XXX=YYYY
             if match = property.match regexps.property
                 [all, pname, pvalue] = match
+                pvalue = pvalue.toLowerCase()
 
             else if property is 'PREF'
                 pname = 'pref'
@@ -163,6 +169,38 @@ module.exports = class VCardParser
 
             else
                 pname = 'type'
-                pvalue = property
+                pvalue = property.toLowerCase()
 
-            dp[pname] = pvalue
+            dp[pname.toLowerCase()] = pvalue
+
+
+module.exports.toVCF = (model) ->
+    out = ["BEGIN:VCARD"]
+    out.push "VERSION:3.0"
+
+    for prop in ['n', 'fn', 'bday', 'org', 'title', 'note']
+        value = model[prop]
+        out.push "#{prop.toUpperCase()}:#{value}" if value
+
+    for i, dp of model.datapoints
+        key = dp.name.toUpperCase()
+        type = dp.type.toUpperCase()
+        value = dp.value
+
+        if Array.isArray(value)
+            value = value.join ';'
+
+        switch key
+            when 'ABOUT'
+                if type in ['ORG','TITLE', 'BDAY']
+                    out.push "#{type}:#{value}"
+                else
+                    out.push "X-#{type}:#{value}"
+            when 'OTHER'
+                out.push "X-#{type}:#{value}"
+            else
+                out.push "#{key};TYPE=#{type}:#{value}"
+
+
+    out.push "END:VCARD"
+    return out.join("\n") + "\n"
