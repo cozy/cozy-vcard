@@ -178,6 +178,10 @@ module.exports.toVCF = (model) ->
     out = ["BEGIN:VCARD"]
     out.push "VERSION:3.0"
 
+    uri = model.carddavuri
+    uid = uri?.substring(0, uri.length - 4) or model.id
+    out.push "UID:#{uid}"
+
     for prop in ['n', 'fn', 'bday', 'org', 'title', 'note']
         value = model[prop]
         out.push "#{prop.toUpperCase()}:#{value}" if value
