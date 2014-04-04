@@ -7,7 +7,7 @@
 regexps =
         begin:       /^BEGIN:VCARD$/i
         end:         /^END:VCARD$/i
-        simple:      /^(version|fn|title|org|note)\:(.+)$/i
+        simple:      /^(version|n|fn|title|org|note)\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
