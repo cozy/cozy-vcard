@@ -142,8 +142,8 @@ module.exports = class VCardParser
         if key in ['email', 'tel', 'adr', 'url']
             @currentDatapoint['name'] = key
             # value = value.join("\n").replace /\n+/g, "\n"
-        else if key is 'BDAY'
-            @currentContact['BDAY'] = value
+        else if key is 'bday'
+            @currentContact['bday'] = value
             @currentDatapoint = null
             return
         else
