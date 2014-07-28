@@ -17,6 +17,10 @@
     "calendar"
   ],
   "author": "Cozy",
+  "contributors": [
+    "Romain Foucault",
+    "arnoschn"
+  ],
   "license": "see LICENSE",
   "readmeFilename": "README.md",
   "dependencies": {},
