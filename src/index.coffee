@@ -54,8 +54,11 @@ module.exports = class VCardParser
             @handleComplexLine line
 
 
-    storeCurrentDatapoint: () ->
+    storeCurrentDatapoint: ->
         if @currentDatapoint
+            # adr field is converted to full text field in Cozy
+            if @currentDatapoint.name is 'adr'
+                @currentDatapoint.value = @currentDatapoint.value[2]
             @currentContact.datapoints.push @currentDatapoint
             @currentDatapoint = null
 
@@ -190,7 +193,7 @@ module.exports.toVCF = (model) ->
         key = dp.name.toUpperCase()
         type = dp.type.toUpperCase()
         value = dp.value
-
+        console.log 'to vcf', dp
         if Array.isArray(value)
             value = value.join ';'
 
@@ -202,6 +205,11 @@ module.exports.toVCF = (model) ->
                     out.push "X-#{type}:#{value}"
             when 'OTHER'
                 out.push "X-#{type}:#{value}"
+            when 'ADR'
+                # ADR field is a full text field in Cozy, whereas it is a
+                # list of fields in vCard
+                value = ['', '', value, '', '', '', '']
+                out.push "#{key};TYPE=#{type}:#{value.join ';'}"
             else
                 out.push "#{key};TYPE=#{type}:#{value}"
 
