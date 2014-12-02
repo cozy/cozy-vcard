@@ -191,27 +191,32 @@ module.exports.toVCF = (model) ->
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
-        type = dp.type.toUpperCase()
+        type = dp.type?.toUpperCase() or null
         value = dp.value
-        console.log 'to vcf', dp
+
         if Array.isArray(value)
             value = value.join ';'
+
+        if type?
+            formattedType = ";TYPE=#{type}"
+        else
+            formattedType = ""
 
         switch key
             when 'ABOUT'
                 if type in ['ORG','TITLE', 'BDAY']
-                    out.push "#{type}:#{value}"
+                    out.push "#{formattedType}:#{value}"
                 else
-                    out.push "X-#{type}:#{value}"
+                    out.push "X-#{formattedType}:#{value}"
             when 'OTHER'
-                out.push "X-#{type}:#{value}"
+                out.push "X-#{formattedType}:#{value}"
             when 'ADR'
                 # ADR field is a full text field in Cozy, whereas it is a
                 # list of fields in vCard
                 value = ['', '', value, '', '', '', '']
-                out.push "#{key};TYPE=#{type}:#{value.join ';'}"
+                out.push "#{key}#{formattedType}:#{value.join ';'}"
             else
-                out.push "#{key};TYPE=#{type}:#{value}"
+                out.push "#{key}#{formattedType}:#{value}"
 
 
     out.push "END:VCARD"
