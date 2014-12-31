@@ -7,7 +7,7 @@
 regexps =
         begin:       /^BEGIN:VCARD$/i
         end:         /^END:VCARD$/i
-        simple:      /^(version|n|fn|title|org|note)\:(.+)$/i
+        simple:      /^(version|n|fn|title|org|note|photo)\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
@@ -31,7 +31,9 @@ module.exports = class VCardParser
         @currentVersion   = "3.0"
 
     read: (vcf) ->
-        @handleLine line for line in vcf.split /\r?\n/
+        # unfold folded fields (like photo)
+        unfolded = vcf.replace /\r?\n\s/gm, ''
+        @handleLine line for line in unfolded.split /\r?\n/
 
     handleLine: (line) ->
         if regexps.begin.test line
@@ -53,7 +55,6 @@ module.exports = class VCardParser
         else if regexps.complex.test line
             @handleComplexLine line
 
-
     storeCurrentDatapoint: ->
         if @currentDatapoint
             # adr field is converted to full text field in Cozy
@@ -73,8 +74,13 @@ module.exports = class VCardParser
         if key is 'VERSION'
             return @currentversion = value
 
-        if key in ['TITLE', 'ORG', 'FN', 'NOTE', 'N', 'BDAY']
+        else if key in ['TITLE', 'ORG', 'FN', 'NOTE', 'N', 'BDAY']
             return @currentContact[key.toLowerCase()] = value
+
+        else if key is 'PHOTO'
+            if value.indexOf('base64') isnt -1
+                encodedString = value.split(',')[1]
+                return @currentContact['photo'] = encodedString
 
     # handle android-android lines (cursor.item)
     #@TODO support other possible cursors
@@ -149,6 +155,10 @@ module.exports = class VCardParser
             @currentContact['bday'] = value
             @currentDatapoint = null
             return
+        else if key is 'photo'
+            @currentContact['photo'] = value
+            @currentDatapoint = null
+            return
         else
             #@TODO handle unkwnown keys
             @currentDatapoint = null
@@ -177,7 +187,7 @@ module.exports = class VCardParser
             dp[pname.toLowerCase()] = pvalue
 
 
-module.exports.toVCF = (model) ->
+module.exports.toVCF = (model, picture = null) ->
     out = ["BEGIN:VCARD"]
     out.push "VERSION:3.0"
 
@@ -188,6 +198,10 @@ module.exports.toVCF = (model) ->
     for prop in ['n', 'fn', 'bday', 'org', 'title', 'note']
         value = model[prop]
         out.push "#{prop.toUpperCase()}:#{value}" if value
+
+    if picture?
+        folded = picture.match(/.{1,75}/g).join '\n '
+        out.push "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}\n"
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
