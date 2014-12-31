@@ -77,11 +77,6 @@ module.exports = class VCardParser
         else if key in ['TITLE', 'ORG', 'FN', 'NOTE', 'N', 'BDAY']
             return @currentContact[key.toLowerCase()] = value
 
-        else if key is 'PHOTO'
-            if value.indexOf('base64') isnt -1
-                encodedString = value.split(',')[1]
-                return @currentContact['photo'] = encodedString
-
     # handle android-android lines (cursor.item)
     #@TODO support other possible cursors
     handleAndroidLine: (line) ->
@@ -156,6 +151,7 @@ module.exports = class VCardParser
             @currentDatapoint = null
             return
         else if key is 'photo'
+            # photo is a special field, not marked as a datapoint
             @currentContact['photo'] = value
             @currentDatapoint = null
             return
@@ -200,6 +196,8 @@ module.exports.toVCF = (model, picture = null) ->
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
     if picture?
+        # vCard 3.0 specifies that lines must be folded at 75 characters
+        # with "\n " as a delimiter
         folded = picture.match(/.{1,75}/g).join '\n '
         out.push "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}\n"
 
