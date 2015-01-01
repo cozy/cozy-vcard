@@ -45,5 +45,5 @@ describe 'vCard Import', ->
         reparser.read VCardParser.toVCF parser.contacts[2]
         cozyContact = parser.contacts[3]
         reparser.read VCardParser.toVCF cozyContact, cozyContact.photo
-        assert reparser.contacts[3].datapoints.length is 3
+        reparser.contacts[3].datapoints.length.should.be.equal 3
 

@@ -184,7 +184,6 @@ module.exports = class VCardParser
 
 
 VCardParser.toVCF = (model, picture = null) ->
-    console.log "ho"
     out = ["BEGIN:VCARD"]
     out.push "VERSION:3.0"
 
@@ -196,7 +195,6 @@ VCardParser.toVCF = (model, picture = null) ->
         value = model[prop]
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
-    console.log picture
     if picture?
         # vCard 3.0 specifies that lines must be folded at 75 characters
         # with "\n " as a delimiter
