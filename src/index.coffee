@@ -183,7 +183,7 @@ module.exports = class VCardParser
             dp[pname.toLowerCase()] = pvalue
 
 
-module.exports.toVCF = (model, picture = null) ->
+VCardParser.toVCF = (model, picture = null) ->
     out = ["BEGIN:VCARD"]
     out.push "VERSION:3.0"
 
@@ -199,7 +199,8 @@ module.exports.toVCF = (model, picture = null) ->
         # vCard 3.0 specifies that lines must be folded at 75 characters
         # with "\n " as a delimiter
         folded = picture.match(/.{1,75}/g).join '\n '
-        out.push "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}\n"
+        pictureString = "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}"
+        out.push pictureString
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
