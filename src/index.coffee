@@ -195,13 +195,6 @@ VCardParser.toVCF = (model, picture = null) ->
         value = model[prop]
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
-    if picture?
-        # vCard 3.0 specifies that lines must be folded at 75 characters
-        # with "\n " as a delimiter
-        folded = picture.match(/.{1,75}/g).join '\n '
-        pictureString = "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}"
-        out.push pictureString
-
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
         type = dp.type?.toUpperCase() or null
@@ -231,6 +224,12 @@ VCardParser.toVCF = (model, picture = null) ->
             else
                 out.push "#{key}#{formattedType}:#{value}"
 
+    if picture?
+        # vCard 3.0 specifies that lines must be folded at 75 characters
+        # with "\n " as a delimiter
+        folded = picture.match(/.{1,75}/g).join '\n '
+        pictureString = "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}"
+        out.push pictureString
 
     out.push "END:VCARD"
     return out.join("\n") + "\n"
