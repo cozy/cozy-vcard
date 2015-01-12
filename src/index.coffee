@@ -39,13 +39,6 @@ class VCardParser
         @currentVersion   = "3.0"
 
     read: (vcf) ->
-        # # unfold folded fields (like photo)
-        # # some vCard 2.1 files use = at end of quoted-printable lines
-        # # instead of space at start of next line.
-        # # TODO: broken with end of base64 input.
-        # # unfolded = vcf.replace /(\r?\n\s)|(=\r?\n)/gm, ''
-        # unfolded = vcf.replace /(\r?\n\s)/gm, ''
-        # @handleLine line for line in unfolded.split /\r?\n/
         @handleLine line for line in @splitLines vcf
 
     # unfold folded fields (like photo)
@@ -58,32 +51,36 @@ class VCardParser
         inQuotedPrintable = false
 
         sourcelines.forEach (line) ->
-            # TODO : defensive against bad formatted !
+            if (not line?) or line is ''
+                return # skip empty lines.
 
-            # Unfold lines which starts with ' '
-            if line[0] is ' '
-                lines[lines.length - 1] = lines[lines.length - 1] + line[1..]
-                if not (inQuotedPrintable and line[line.length - 1] is '=')
-                    inQuotedPrintable = false
-                return
+            # Unfold cases
+            if line[0] is ' ' or inQuotedPrintable
 
-            if inQuotedPrintable
-                # previous line was quoted printable and end's with '='
-                if line[line.length - 1] is '='
+                # Unfold lines which starts with ' '
+                if line[0] is ' '
+                    line = line[1..]
+
+                if inQuotedPrintable
+                    if line[line.length - 1] is '='
+                        line = line.slice 0, -1
+                    else
+                        inQuotedPrintable = false
+
+                lineIndex = lines.length - 1
+
+                if lineIndex >= 0
+                    lines[lineIndex] = lines[lineIndex] + line
+                else
+                    lines.push line
+
+            else
+
+                if /^(.+)ENCODING=QUOTED-PRINTABLE(.+)=$/i.test line
+                    inQuotedPrintable = true
                     line = line.slice 0, -1
 
-                else
-                    inQuotedPrintable = false
-
-                lines[lines.length - 1] = lines[lines.length - 1] + line
-                return
-
-            if /^(.+)ENCODING=QUOTED-PRINTABLE(.+)=$/i.test line
-                inQuotedPrintable = true
-                lines.push line.slice 0, -1
-                return
-
-            lines.push line
+                lines.push line
 
         return lines
 
@@ -297,10 +294,14 @@ VCardParser.toVCF = (model, picture = null) ->
     uid = uri?.substring(0, uri.length - 4) or model.id
     out.push "UID:#{uid}"
 
-    for prop in ['n', 'fn', 'bday', 'org', 'title', 'note']
+    for prop in ['fn', 'bday', 'org', 'title', 'note']
         value = model[prop]
         value = VCardParser.escapeText value if value
         out.push "#{prop.toUpperCase()}:#{value}" if value
+
+
+    if model.n?
+        out.push "N:#{model.n}" if value
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
