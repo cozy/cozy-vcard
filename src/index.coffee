@@ -177,7 +177,7 @@ class VCardParser
         key = part[0]
         properties = part.splice 1
 
-        value = value.split(';')
+        value = value.split ';'
         if value.length is 1
             value = value[0].replace('_$!<', '')
             .replace('>!$_', '').replace('\\:', ':')
@@ -195,6 +195,9 @@ class VCardParser
             if key is 'x-abrelatednames'
                 key = 'other'
 
+            if key is 'adr'
+                value = @parseAdrValue value
+
             @currentDatapoint['name'] = key.toLowerCase()
             @currentDatapoint['value'] = value
 
@@ -211,15 +214,9 @@ class VCardParser
 
         if key in ['email', 'tel', 'adr', 'url']
             @currentDatapoint['name'] = key
-            # value = value.join("\n").replace /\n+/g, "\n"
             # adr field is converted to full text field in Cozy
             if key is 'adr'
-                value ?= []
-                if typeof value isnt 'string'
-                    value = value.filter (part) ->
-                            return part? and part isnt ''
-                        .join '\n'
-                value = VCardParser.unescapeText value
+                value = @parseAdrValue value
 
         else if key is 'bday'
             @currentContact['bday'] = value
@@ -261,8 +258,16 @@ class VCardParser
 
             dp[pname.toLowerCase()] = pvalue
 
+    # Convert splitted vCard address format, to flat one, but with line breaks.
+    # @param value expect an array (adr value, splitted by ';').
+    parseAdrValue: (value) ->
+        value ?= []
+        value = value.filter (part) ->
+                        return part? and part isnt ''
 
-
+        value = value.join '\\n'
+        value = VCardParser.unescapeText value
+        return value
 
 VCardParser.unquotePrintable = (s) ->
     if not s?
@@ -301,7 +306,7 @@ VCardParser.toVCF = (model, picture = null) ->
 
 
     if model.n?
-        out.push "N:#{model.n}" if value
+        out.push "N:#{model.n}"
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
@@ -388,4 +393,4 @@ VCardParser.fnToNLastnameNFirstname = (fn) ->
 if module?.exports
     module.exports = VCardParser
 else
-    window = VCardParser
+    window.VCardParser = VCardParser
