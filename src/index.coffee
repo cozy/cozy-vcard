@@ -136,6 +136,7 @@ class VCardParser
         [all, key, quoted, value] = line.match regexps.simple
         if quoted?
             value = VCardParser.unquotePrintable value
+        value = VCardParser.unescapeText value
 
         if key is 'VERSION'
             return @currentversion = value
@@ -261,13 +262,26 @@ class VCardParser
     # Convert splitted vCard address format, to flat one, but with line breaks.
     # @param value expect an array (adr value, splitted by ';').
     parseAdrValue: (value) ->
+        # UX is partly broken on iOS with adr on more than 2 lines.
+        # So, we convert structured address to 2 lines flat address,
+        # First: Postbox, appartment and street adress on first (field: 0, 1, 2)
+        # Second: Locality, region, postcode, country (field: 3, 4, 5, 6)
         value ?= []
-        value = value.filter (part) ->
-                        return part? and part isnt ''
 
-        value = value.join '\\n'
-        value = VCardParser.unescapeText value
-        return value
+        structuredToFlat = (t) ->
+            t = t.filter (part) ->
+                return part? and part isnt ''
+            t = t.map VCardParser.unescapeText
+            return t.join ', '
+
+        streetPart = structuredToFlat value[0..2]
+        countryPart = structuredToFlat value[3..6]
+
+        flat = streetPart
+        flat += '\n' + countryPart if countryPart isnt ''
+        return flat
+
+
 
 VCardParser.unquotePrintable = (s) ->
     if not s?
