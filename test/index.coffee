@@ -27,13 +27,20 @@ describe 'vCard Import', ->
         properties.forEach (property) ->
             parser.contacts[2].should.have.property property
 
+    it "should parse an Android with quoted-printable text vCard", ->
+
+        parser.read fs.readFileSync 'test/android-quotedprintable.vcf', 'utf8'
+        properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
+        properties.forEach (property) ->
+            parser.contacts[3].should.have.property property
+
     it "should parse a Cozycloud vCard", ->
 
         parser.read fs.readFileSync 'test/cozy.vcf', 'utf8'
         properties = ['datapoints', 'n', 'fn', 'photo']
         properties.forEach (property) ->
-            parser.contacts[3].should.have.property property
-            parser.contacts[3].datapoints.length is 3
+            parser.contacts[4].should.have.property property
+            parser.contacts[4].datapoints.length is 3
             # TODO: fix these failing tests
             #parser.contacts[3].note.length.should.be.equal 32
             #parser.contacts[3].datapoints[2].value.length.should.be.equal 53
@@ -43,7 +50,8 @@ describe 'vCard Import', ->
         reparser.read VCardParser.toVCF parser.contacts[0]
         reparser.read VCardParser.toVCF parser.contacts[1]
         reparser.read VCardParser.toVCF parser.contacts[2]
-        cozyContact = parser.contacts[3]
+        reparser.read VCardParser.toVCF parser.contacts[3]
+        cozyContact = parser.contacts[4]
         reparser.read VCardParser.toVCF cozyContact, cozyContact.photo
-        reparser.contacts[3].datapoints.length.should.be.equal 3
+        reparser.contacts[4].datapoints.length.should.be.equal 3
 

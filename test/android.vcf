@@ -1,18 +1,18 @@
 BEGIN:VCARD
 VERSION:2.1
-N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=64=65=20=43=6F=7A=79;=54=65=73=74=C3=A9;;;
-FN;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=54=65=73=74=C3=A9=20=64=65=20=43=6F=7A=79
+N:Test;Cozy;;;
+FN:Cozy Test
 NOTE:Something
 X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;Cozypseudo;1;;;;;;;;;;;;;
 TEL;CELL:060-000-0000
 EMAIL;WORK:cozytest@cozycloud.cc
 EMAIL;HOME:cozytest2@cozycloud.cc
-ADR;HOME;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:;;=31=2C=20=72=75=65=20=41=63=63=65=6E=74=75=C3=A9=65=20=37=35=30=31=30=
-=20=50=61=72=69=73;;;;
-ADR;HOME:;;2 Sample Adress 75001 Paris;;;;
-ORG;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=53=6F=63=69=C3=A9=74=C3=A9=20=43=6F=7A=79=63=6C=6F=75=64
-TITLE;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=54=C3=A9=73=74=65=75=72=20=46=6F=75
+ADR;HOME:;;1 Sample Adress 75001 Paris;;;;
+ADR;HOME2:;;2 Sample Adress 75001 Paris;;;;
+ORG:Cozycloud
+TITLE:Testeur Fou
 X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2013-01-01;0;Date Perso;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2013-01-01;1;;;;;;;;;;;;;
 BDAY:1989-02-02
-X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Cozypouet;1;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Cozypouet;6;;;;;;;;;;;;;
 END:VCARD
