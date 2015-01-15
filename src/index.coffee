@@ -15,7 +15,7 @@ regexps =
         begin:       /^BEGIN:VCARD$/i
         end:         /^END:VCARD$/i
         # vCard 2.1 files can use quoted-printable text.
-        simple:     /^(version|fn|n|title|org|note)(;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple:     /^(version|fn|n|title|org|note)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
@@ -122,7 +122,9 @@ class VCardParser
         if not @currentContact.n? and not @currentContact.fn?
             console.error 'There should be at least a N field or a FN field'
 
-        if (not @currentContact.n?) or @currentContact.n is ''
+        if (not @currentContact.n?) or
+        @currentContact.n is '' or
+        @currentContact.n is ';;;;'
             @currentContact.n = VCardParser.fnToN(@currentContact.fn).join ';'
 
         if (not @currentContact.fn?) or @currentContact.fn is ''
@@ -133,7 +135,7 @@ class VCardParser
 
     # handle easy lines such as TITLE:XXX
     handleSimpleLine: (line) ->
-        [all, key, quoted, value] = line.match regexps.simple
+        [all, key, utf, quoted, value] = line.match regexps.simple
         if quoted?
             value = VCardParser.unquotePrintable value
         value = VCardParser.unescapeText value
