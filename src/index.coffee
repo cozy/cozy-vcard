@@ -114,7 +114,7 @@ class VCardParser
         @storeCurrentDatapoint()
         @currentContact.datapoints.push {name, type, value}
 
-    storeCurrentContact: () ->
+    storeCurrentContact: ->
         # There is two fields N and FN that does the same thing but not the
         # same way. Some vCard have one or ther other, or both.
         # If both are present, we keep them.
@@ -122,9 +122,7 @@ class VCardParser
         if not @currentContact.n? and not @currentContact.fn?
             console.error 'There should be at least a N field or a FN field'
 
-        if (not @currentContact.n?) or
-        @currentContact.n is '' or
-        @currentContact.n is ';;;;'
+        if (not @currentContact.n?) or @currentContact.n in ['', ';;;;']
             @currentContact.n = VCardParser.fnToN(@currentContact.fn).join ';'
 
         if (not @currentContact.fn?) or @currentContact.fn is ''
@@ -286,8 +284,8 @@ class VCardParser
 
 
 VCardParser.unquotePrintable = (s) ->
-    if not s?
-        s = ''
+    s = s or ''
+
     return utf8.decode quotedPrintable.decode s
 
 VCardParser.escapeText = (s) ->
@@ -376,8 +374,7 @@ VCardParser.toVCF = (model, picture = null) ->
 
 
 VCardParser.nToFN = (n) ->
-    if not n
-        n = []
+    n = n or []
 
     [familly, given, middle, prefix, suffix] = n
 
@@ -390,15 +387,13 @@ VCardParser.nToFN = (n) ->
 
 # Put fn as n's firstname.
 VCardParser.fnToN = (fn) ->
-    if not fn?
-        fn = ''
+    fn = fn or ''
 
     return ['', fn, '', '', '']
 
 # Parse n field from fn, trying to fill in firstname, lastname and middlename.
 VCardParser.fnToNLastnameNFirstname = (fn) ->
-    if not fn?
-        fn = ''
+    fn = fn or ''
 
     [given, middle..., familly] = fn.split ' '
     parts = [familly, given, middle.join(' '), '', '']
