@@ -1,0 +1,19 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//iOS 8.1.2//EN
+N:de Cozy;Testé;;;
+FN:Testé de Cozy
+ORG:Société Cozycloud;
+EMAIL;type=INTERNET;type=HOME;type=pref:testcozy@cozycloud.cc
+EMAIL;type=INTERNET;type=WORK:test.decozy@cozycloud.cc
+TEL;type=CELL;type=VOICE;type=pref:+33 6 12 34 56 78
+TEL;type=WORK;type=VOICE:01 23 45 67 89
+item1.ADR;type=HOME;type=pref:;;12\, rue René Boulanger;Paris;;75010;France
+item1.X-ABADR:fr
+item2.ADR;type=WORK:;;4\, rue Léon Jouhaux;Paris;;75010;France
+item2.X-ABADR:fr
+NOTE:46b12\,\n3ème étage droite.
+BDAY;value=date:1604-02-02
+REV:2015-01-19T09:25:56Z
+UID:8925F4AF-9773-4030-ACDE-F12D78627DBD
+END:VCARD

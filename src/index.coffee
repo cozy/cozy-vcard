@@ -179,6 +179,7 @@ class VCardParser
         properties = part.splice 1
 
         value = value.split ';'
+
         if value.length is 1
             value = value[0].replace('_$!<', '')
             .replace('>!$_', '').replace('\\:', ':')
@@ -186,7 +187,8 @@ class VCardParser
         key = key.toLowerCase()
 
         if key is 'x-ablabel' or key is 'x-abadr'
-            @currentDatapoint['type'] = value.toLowerCase()
+            @addTypeProperty @currentDatapoint, value.toLowerCase()
+
         else
             @handleProperties @currentDatapoint, properties
 
@@ -197,7 +199,11 @@ class VCardParser
                 key = 'other'
 
             if key is 'adr'
-                value = @parseAdrValue value
+                if Array.isArray value
+                    value = value.map VCardParser.unescapeText
+                else
+                    value = ['', '', VCardParser.unescapeText(value),
+                    '', '', '', '']
 
             @currentDatapoint['name'] = key.toLowerCase()
             @currentDatapoint['value'] = value
@@ -215,9 +221,13 @@ class VCardParser
 
         if key in ['email', 'tel', 'adr', 'url']
             @currentDatapoint['name'] = key
-            # adr field is converted to full text field in Cozy
             if key is 'adr'
-                value = @parseAdrValue value
+                if Array.isArray value
+
+                    value = value.map VCardParser.unescapeText
+                else
+                    value = ['', '', VCardParser.unescapeText(value),
+                    '', '', '', '']
 
         else if key is 'bday'
             @currentContact['bday'] = value
@@ -236,7 +246,10 @@ class VCardParser
         @handleProperties @currentDatapoint, properties.split ';'
 
         if @currentDatapoint.encoding is 'quoted-printable'
-            value = VCardParser.unquotePrintable value
+            if Array.isArray value
+                value = value.map VCardParser.unquotePrintable
+            else
+                value = VCardParser.unquotePrintable value
             delete @currentDatapoint.encoding
 
         @currentDatapoint.value = value
@@ -257,36 +270,45 @@ class VCardParser
                 pname = 'type'
                 pvalue = property.toLowerCase()
 
-            dp[pname.toLowerCase()] = pvalue
+            # iOS use type=pref instead of pref=123.
+            if pname is 'type' and pvalue is 'pref'
+                pname = 'pref'
+                pvalue = true
 
-    # Convert splitted vCard address format, to flat one, but with line breaks.
-    # @param value expect an array (adr value, splitted by ';').
-    parseAdrValue: (value) ->
-        # UX is partly broken on iOS with adr on more than 2 lines.
-        # So, we convert structured address to 2 lines flat address,
-        # First: Postbox, appartment and street adress on first (field: 0, 1, 2)
-        # Second: Locality, region, postcode, country (field: 3, 4, 5, 6)
-        value ?= []
+            # Google, iOS use many type fields.
+            # We decide home, work, cell have priotiry over others.
+            if pname is 'type'
+                @addTypeProperty dp, pvalue
 
-        structuredToFlat = (t) ->
-            t = t.filter (part) ->
-                return part? and part isnt ''
-            t = t.map VCardParser.unescapeText
-            return t.join ', '
+            else
+                dp[pname.toLowerCase()] = pvalue
 
-        streetPart = structuredToFlat value[0..2]
-        countryPart = structuredToFlat value[3..6]
+    # Google, iOS use many type fields.
+    # We decide home, work, cell have priotiry over others.
+    addTypeProperty: (dp, pvalue) ->
+        pname = 'type'
+        if 'type' of dp
+            pname = 'type-2'
 
-        flat = streetPart
-        flat += '\n' + countryPart if countryPart isnt ''
-        return flat
+            # It has priority
+            if pvalue in ['home', 'work', 'cell']
+                oldTypeValue = dp.type
+                dp.type = pvalue
+                pvalue = oldTypeValue
+
+        dp[pname.toLowerCase()] = pvalue
+
+
 
 
 
 VCardParser.unquotePrintable = (s) ->
     s = s or ''
-
-    return utf8.decode quotedPrintable.decode s
+    try
+        return utf8.decode quotedPrintable.decode s
+    catch error
+        # Error decoding,
+        return s
 
 VCardParser.escapeText = (s) ->
     if not s?
@@ -327,10 +349,11 @@ VCardParser.toVCF = (model, picture = null) ->
         type = dp.type?.toUpperCase() or null
         value = dp.value
 
-        if Array.isArray(value)
-            value = value.join ';'
+        if Array.isArray value
+            value = value.map VCardParser.escapeText
+        else
+            value = VCardParser.escapeText value
 
-        value = VCardParser.escapeText value
         if type?
             formattedType = ";TYPE=#{type}"
         else
@@ -345,9 +368,6 @@ VCardParser.toVCF = (model, picture = null) ->
             when 'OTHER'
                 out.push "X-#{formattedType}:#{value}"
             when 'ADR'
-                # ADR field is a full text field in Cozy, whereas it is a
-                # list of fields in vCard
-                value = ['', '', value, '', '', '', '']
                 out.push "#{key}#{formattedType}:#{value.join ';'}"
             else
                 out.push "#{key}#{formattedType}:#{value}"
@@ -399,6 +419,31 @@ VCardParser.fnToNLastnameNFirstname = (fn) ->
     parts = [familly, given, middle.join(' '), '', '']
 
     return parts
+
+# Convert splitted vCard address format, to flat one, but with line breaks.
+# @param value expect an array (adr value, splitted by ';').
+VCardParser.adrArrayToString = (value) ->
+    # UX is partly broken on iOS with adr on more than 2 lines.
+    # So, we convert structured address to 2 lines flat address,
+    # First: Postbox, appartment and street adress on first (field: 0, 1, 2)
+    # Second: Locality, region, postcode, country (field: 3, 4, 5, 6)
+    value = value or []
+
+    structuredToFlat = (t) ->
+        t = t.filter (part) -> return part? and part isnt ''
+        return t.join ', '
+
+    streetPart = structuredToFlat value[0..2]
+    countryPart = structuredToFlat value[3..6]
+
+    flat = streetPart
+    flat += '\n' + countryPart if countryPart isnt ''
+    return flat
+
+# Convert String (of an address) to a [String][7]
+VCardParser.adrStringToArray = (s) ->
+    s = s or ''
+    return ['', '', s, '', '', '', '']
 
 
 if module?.exports

@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Testé de Cozy
+N:de Cozy;Testé;;;
+EMAIL;TYPE=INTERNET;TYPE=WORK:test.decozy@cozycloud.cc
+EMAIL;TYPE=INTERNET;TYPE=HOME:testcozy@cozycloud.cc
+TEL;TYPE=CELL:+33 6 12 34 56 78
+TEL;TYPE=WORK:0123456789
+ADR;TYPE=HOME:;;12\, rue René Boulanger\n75010 Paris;;;;
+ADR;TYPE=WORK:;;4\, rue Léon Jouhaux\n75010 Paris;;;;
+ORG:Société Cozycloud
+TITLE:Tésteur Fou
+BDAY:1989-02-02
+NOTE:46b12\,\n3ème étage droite.
+END:VCARD
