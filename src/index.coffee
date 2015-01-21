@@ -286,20 +286,20 @@ class VCardParser
     # Google, iOS use many type fields.
     # We decide home, work, cell have priotiry over others.
     addTypeProperty: (dp, pvalue) ->
-        pname = 'type'
         if 'type' of dp
-            pname = 'type-2'
+            dp.typesOther = dp.typesOther or []
 
             # It has priority
             if pvalue in ['home', 'work', 'cell']
                 oldTypeValue = dp.type
                 dp.type = pvalue
-                pvalue = oldTypeValue
+                dp.typesOther.push oldTypeValue
 
-        dp[pname.toLowerCase()] = pvalue
+            else
+                dp.typesOther.push pvalue
 
-
-
+        else
+            dp['type'] = pvalue
 
 
 VCardParser.unquotePrintable = (s) ->
@@ -444,6 +444,7 @@ VCardParser.adrArrayToString = (value) ->
 VCardParser.adrStringToArray = (s) ->
     s = s or ''
     return ['', '', s, '', '', '', '']
+
 
 
 if module?.exports

@@ -79,9 +79,6 @@ describe 'vCard Import', ->
             properties.forEach (property) ->
                 parser.contacts[4].should.have.property property
                 parser.contacts[4].datapoints.length is 3
-                # TODO: fix these failing tests
-                #parser.contacts[3].note.length.should.be.equal 32
-                #parser.contacts[3].datapoints[2].value.length.should.be.equal 53
 
         it "should toVCF and parse back", ->
             reparser = new VCardParser()
@@ -109,26 +106,33 @@ describe 'vCard Import', ->
 
         contactsEquals = (obtained, expected) ->
             properties = ['n', 'fn', 'note']
-            # properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
             properties.forEach (property) ->
                 obtained[property].should.equal expected[property]
 
             datapointsFlat = datapoints2Flat obtained.datapoints
 
-            # datapoints which require tolerance
+            # telelphone datapoints require tolerance
             for prop in ['tel_cell', 'tel_work']
                 # client may introduce meaningless separators in phone numbers
                 shouldEqualNoSpaceNorMinus datapointsFlat[prop],
                                            expected.datapointsFlat[prop]
 
-            for prop in ['adr_home', 'adr_work']
-                # datapointsFlat[prop].should.eql expected.datapointsFlat[prop]
-                datapointsFlat[prop].should.be.a 'array'
-
 
             properties = ['email_work', 'email_home']
             properties.forEach (prop) ->
                 datapointsFlat[prop].should.equal expected.datapointsFlat[prop]
+
+
+            datapointsFlat.adr_home.should.be.a 'array'
+            adrHomeFlat = VCardParser.adrArrayToString datapointsFlat.adr_home
+            pass = adrHomeFlat is '12, rue René Boulanger\nParis, 75010, France' or
+                adrHomeFlat is '12, rue René Boulanger\n75010 Paris'
+            pass.should.be.true
+
+            datapointsFlat.adr_work.should.be.a 'array'
+            adrWorkFlat = VCardParser.adrArrayToString datapointsFlat.adr_work
+            pass = adrHomeFlat is '4, rue Léon Jouhaux\nParis, 75010, France' or
+                adrHomeFlat is '4, rue Léon Jouhaux\n75010 Paris'
 
 
         expected = JSON.parse fs.readFileSync 'test/fixtures/contactA/contact.json'
@@ -138,41 +142,17 @@ describe 'vCard Import', ->
             parser.read fs.readFileSync 'test/fixtures/contactA/cozy.vcf', 'utf8'
             contactsEquals parser.contacts[0], expected
 
-            dps = datapoints2Flat parser.contacts[0].datapoints
-            VCardParser.adrArrayToString dps.adr_home
-                .should.equal '12, rue René Boulanger\n75010 Paris'
-            VCardParser.adrArrayToString dps.adr_work
-                .should.equal '4, rue Léon Jouhaux\n75010 Paris'
-
         it "should parse a google vCard", ->
             parser.read fs.readFileSync 'test/fixtures/contactA/google.vcf', 'utf8'
             contactsEquals parser.contacts[1], expected
-
-            dps = datapoints2Flat parser.contacts[1].datapoints
-            VCardParser.adrArrayToString dps.adr_home
-                .should.equal '12, rue René Boulanger\n75010 Paris'
-            VCardParser.adrArrayToString dps.adr_work
-                .should.equal '4, rue Léon Jouhaux\n75010 Paris'
 
         it "should parse a android vCard", ->
             parser.read fs.readFileSync 'test/fixtures/contactA/android.vcf', 'utf8'
             contactsEquals parser.contacts[2], expected
 
-            dps = datapoints2Flat parser.contacts[2].datapoints
-            VCardParser.adrArrayToString dps.adr_home
-                .should.equal '12, rue René Boulanger\n75010 Paris'
-            VCardParser.adrArrayToString dps.adr_work
-                .should.equal '4, rue Léon Jouhaux\n75010 Paris'
-
         it "should parse a iOS vCard", ->
             parser.read fs.readFileSync 'test/fixtures/contactA/ios.vcf', 'utf8'
             contactsEquals parser.contacts[3], expected
-
-            dps = datapoints2Flat parser.contacts[3].datapoints
-            VCardParser.adrArrayToString dps.adr_home
-                .should.equal '12, rue René Boulanger\nParis, 75010, France'
-            VCardParser.adrArrayToString dps.adr_work
-                .should.equal '4, rue Léon Jouhaux\nParis, 75010, France'
 
         it "should parse a thundersync (thunderbird) vCard", ->
             parser.read fs.readFileSync 'test/fixtures/contactA/thundersync.vcf', 'utf8'
@@ -195,16 +175,15 @@ describe 'vCard Import', ->
             VCardParser.adrArrayToString dps.adr_work
                 .should.equal '4, rue Léon Jouhaux\nParis, 75010, France'
 
-        # it "should toVCF and parse back", ->
-        #     reparser = new VCardParser()
-        #     reparser.read VCardParser.toVCF parser.contacts[0]
-        #     reparser.read VCardParser.toVCF parser.contacts[1]
-        #     reparser.read VCardParser.toVCF parser.contacts[2]
-        #     # reparser.read VCardParser.toVCF parser.contacts[3]
-        #     cozyContact = parser.contacts[4]
-        #     reparser.read VCardParser.toVCF cozyContact, cozyContact.photo
-        #     reparser.contacts[4].datapoints.length.should.be.equal 3
+        it "should toVCF and parse back", ->
+            reparser = new VCardParser()
+            reparser.read VCardParser.toVCF parser.contacts[0]
+            reparser.read VCardParser.toVCF parser.contacts[1]
+            reparser.read VCardParser.toVCF parser.contacts[2]
+            reparser.read VCardParser.toVCF parser.contacts[3]
 
+            reparser.contacts.forEach (obtained) ->
+                contactsEquals obtained, expected
 
 describe 'Contact instances tools', ->
     describe 'nToFN', ->
