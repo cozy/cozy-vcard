@@ -1,13 +1,21 @@
 # Small module to generate vcard file from JS Objects or to parse vcard file
 # to obtain explicit JS Objects.
 
+if module?.exports # NodeJS
+    utf8 = require 'utf8'
+    quotedPrintable = require 'quoted-printable'
 
-# inspired by https://github.com/mattt/vcard.js
+else #Browser
+    utf8 = window.utf8
+    quotedPrintable = window.quotedPrintable
+
+# Parser inspired by https://github.com/mattt/vcard.js
 
 regexps =
         begin:       /^BEGIN:VCARD$/i
         end:         /^END:VCARD$/i
-        simple:      /^(version|n|fn|title|org|note|photo)\:(.+)$/i
+        # vCard 2.1 files can use quoted-printable text.
+        simple:     /^(version|fn|n|title|org|note)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
@@ -17,7 +25,7 @@ ANDROID_RELATION_TYPES = ['custom', 'assistant', 'brother', 'child',
             'domestic partner', 'father', 'friend', 'manager', 'mother',
             'parent', 'partner', 'referred by', 'relative', 'sister', 'spouse']
 
-module.exports = class VCardParser
+class VCardParser
 
     constructor: (vcf) ->
         @reset()
@@ -31,9 +39,51 @@ module.exports = class VCardParser
         @currentVersion   = "3.0"
 
     read: (vcf) ->
-        # unfold folded fields (like photo)
-        unfolded = vcf.replace /\r?\n\s/gm, ''
-        @handleLine line for line in unfolded.split /\r?\n/
+        @handleLine line for line in @splitLines vcf
+
+    # unfold folded fields (like photo)
+    # some vCard 2.1 files use = at end of quoted-printable lines
+    # instead of space at start of next line.
+    splitLines: (s) ->
+        sourcelines = s.split /\r?\n/
+        lines = []
+
+        inQuotedPrintable = false
+
+        sourcelines.forEach (line) ->
+            if (not line?) or line is ''
+                return # skip empty lines.
+
+            # Unfold cases
+            if line[0] is ' ' or inQuotedPrintable
+
+                # Unfold lines which starts with ' '
+                if line[0] is ' '
+                    line = line[1..]
+
+                if inQuotedPrintable
+                    if line[line.length - 1] is '='
+                        line = line.slice 0, -1
+                    else
+                        inQuotedPrintable = false
+
+                lineIndex = lines.length - 1
+
+                if lineIndex >= 0
+                    lines[lineIndex] = lines[lineIndex] + line
+                else
+                    lines.push line
+
+            else
+
+                if /^(.+)ENCODING=QUOTED-PRINTABLE(.+)=$/i.test line
+                    inQuotedPrintable = true
+                    line = line.slice 0, -1
+
+                lines.push line
+
+        return lines
+
 
     handleLine: (line) ->
         if regexps.begin.test line
@@ -41,7 +91,7 @@ module.exports = class VCardParser
 
         else if regexps.end.test line
             @storeCurrentDatapoint()
-            @contacts.push @currentContact
+            @storeCurrentContact()
 
         else if regexps.simple.test line
             @handleSimpleLine line
@@ -57,9 +107,6 @@ module.exports = class VCardParser
 
     storeCurrentDatapoint: ->
         if @currentDatapoint
-            # adr field is converted to full text field in Cozy
-            if @currentDatapoint.name is 'adr'
-                @currentDatapoint.value = @currentDatapoint.value[2]
             @currentContact.datapoints.push @currentDatapoint
             @currentDatapoint = null
 
@@ -67,9 +114,29 @@ module.exports = class VCardParser
         @storeCurrentDatapoint()
         @currentContact.datapoints.push {name, type, value}
 
+    storeCurrentContact: ->
+        # There is two fields N and FN that does the same thing but not the
+        # same way. Some vCard have one or ther other, or both.
+        # If both are present, we keep them.
+        # If only one is present, we compute the other one.
+        if not @currentContact.n? and not @currentContact.fn?
+            console.error 'There should be at least a N field or a FN field'
+
+        if (not @currentContact.n?) or @currentContact.n in ['', ';;;;']
+            @currentContact.n = VCardParser.fnToN(@currentContact.fn).join ';'
+
+        if (not @currentContact.fn?) or @currentContact.fn is ''
+            @currentContact.fn = VCardParser.nToFN @currentContact.n
+
+        @contacts.push @currentContact
+
+
     # handle easy lines such as TITLE:XXX
     handleSimpleLine: (line) ->
-        [all, key, value] = line.match regexps.simple
+        [all, key, utf, quoted, value] = line.match regexps.simple
+        if quoted?
+            value = VCardParser.unquotePrintable value
+        value = VCardParser.unescapeText value
 
         if key is 'VERSION'
             return @currentversion = value
@@ -111,7 +178,8 @@ module.exports = class VCardParser
         key = part[0]
         properties = part.splice 1
 
-        value = value.split(';')
+        value = value.split ';'
+
         if value.length is 1
             value = value[0].replace('_$!<', '')
             .replace('>!$_', '').replace('\\:', ':')
@@ -119,7 +187,8 @@ module.exports = class VCardParser
         key = key.toLowerCase()
 
         if key is 'x-ablabel' or key is 'x-abadr'
-            @currentDatapoint['type'] = value.toLowerCase()
+            @addTypeProperty @currentDatapoint, value.toLowerCase()
+
         else
             @handleProperties @currentDatapoint, properties
 
@@ -128,6 +197,13 @@ module.exports = class VCardParser
 
             if key is 'x-abrelatednames'
                 key = 'other'
+
+            if key is 'adr'
+                if Array.isArray value
+                    value = value.map VCardParser.unescapeText
+                else
+                    value = ['', '', VCardParser.unescapeText(value),
+                    '', '', '', '']
 
             @currentDatapoint['name'] = key.toLowerCase()
             @currentDatapoint['value'] = value
@@ -138,14 +214,21 @@ module.exports = class VCardParser
         @storeCurrentDatapoint()
         @currentDatapoint = {}
 
-        value = value.split(';')
+        value = value.split ';'
         value = value[0] if value.length is 1
 
         key = key.toLowerCase()
 
         if key in ['email', 'tel', 'adr', 'url']
             @currentDatapoint['name'] = key
-            # value = value.join("\n").replace /\n+/g, "\n"
+            if key is 'adr'
+                if Array.isArray value
+
+                    value = value.map VCardParser.unescapeText
+                else
+                    value = ['', '', VCardParser.unescapeText(value),
+                    '', '', '', '']
+
         else if key is 'bday'
             @currentContact['bday'] = value
             @currentDatapoint = null
@@ -161,6 +244,13 @@ module.exports = class VCardParser
             return
 
         @handleProperties @currentDatapoint, properties.split ';'
+
+        if @currentDatapoint.encoding is 'quoted-printable'
+            if Array.isArray value
+                value = value.map VCardParser.unquotePrintable
+            else
+                value = VCardParser.unquotePrintable value
+            delete @currentDatapoint.encoding
 
         @currentDatapoint.value = value
 
@@ -180,7 +270,61 @@ module.exports = class VCardParser
                 pname = 'type'
                 pvalue = property.toLowerCase()
 
-            dp[pname.toLowerCase()] = pvalue
+            # iOS use type=pref instead of pref=123.
+            if pname is 'type' and pvalue is 'pref'
+                pname = 'pref'
+                pvalue = true
+
+            # Google, iOS use many type fields.
+            # We decide home, work, cell have priotiry over others.
+            if pname is 'type'
+                @addTypeProperty dp, pvalue
+
+            else
+                dp[pname.toLowerCase()] = pvalue
+
+    # Google, iOS use many type fields.
+    # We decide home, work, cell have priotiry over others.
+    addTypeProperty: (dp, pvalue) ->
+        if 'type' of dp
+            dp.typesOther = dp.typesOther or []
+
+            # It has priority
+            if pvalue in ['home', 'work', 'cell']
+                oldTypeValue = dp.type
+                dp.type = pvalue
+                dp.typesOther.push oldTypeValue
+
+            else
+                dp.typesOther.push pvalue
+
+        else
+            dp['type'] = pvalue
+
+
+VCardParser.unquotePrintable = (s) ->
+    s = s or ''
+    try
+        return utf8.decode quotedPrintable.decode s
+    catch error
+        # Error decoding,
+        return s
+
+VCardParser.escapeText = (s) ->
+    if not s?
+        return s
+    t = s.replace /([,;\\])/ig, "\\$1"
+    t = t.replace /\n/g, '\\n'
+
+    return t
+
+VCardParser.unescapeText = (t) ->
+    if not t?
+        return t
+    s = t.replace /\\n/ig, '\n'
+    s = s.replace /\\([,;\\])/ig, "$1"
+
+    return s
 
 
 VCardParser.toVCF = (model, picture = null) ->
@@ -191,17 +335,24 @@ VCardParser.toVCF = (model, picture = null) ->
     uid = uri?.substring(0, uri.length - 4) or model.id
     out.push "UID:#{uid}"
 
-    for prop in ['n', 'fn', 'bday', 'org', 'title', 'note']
+    for prop in ['fn', 'bday', 'org', 'title', 'note']
         value = model[prop]
+        value = VCardParser.escapeText value if value
         out.push "#{prop.toUpperCase()}:#{value}" if value
+
+
+    if model.n?
+        out.push "N:#{model.n}"
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
         type = dp.type?.toUpperCase() or null
         value = dp.value
 
-        if Array.isArray(value)
-            value = value.join ';'
+        if Array.isArray value
+            value = value.map VCardParser.escapeText
+        else
+            value = VCardParser.escapeText value
 
         if type?
             formattedType = ";TYPE=#{type}"
@@ -217,9 +368,6 @@ VCardParser.toVCF = (model, picture = null) ->
             when 'OTHER'
                 out.push "X-#{formattedType}:#{value}"
             when 'ADR'
-                # ADR field is a full text field in Cozy, whereas it is a
-                # list of fields in vCard
-                value = ['', '', value, '', '', '', '']
                 out.push "#{key}#{formattedType}:#{value.join ';'}"
             else
                 out.push "#{key}#{formattedType}:#{value}"
@@ -233,3 +381,73 @@ VCardParser.toVCF = (model, picture = null) ->
 
     out.push "END:VCARD"
     return out.join("\n") + "\n"
+
+
+##
+# Tools for VCard instances.
+##
+# With this Model :
+# - fn: String # vCard FullName = display name
+#   (Prefix Given Middle Familly Suffix)
+# - n: [String] # vCard Name = splitted
+#   [Familly, Given, Middle, Prefix, Suffix]
+
+
+VCardParser.nToFN = (n) ->
+    n = n or []
+
+    [familly, given, middle, prefix, suffix] = n
+
+    # order parts of name.
+    parts = [prefix, given, middle, familly, suffix]
+    # remove empty parts
+    parts = parts.filter (part) -> part? and part isnt ''
+
+    return parts.join ' '
+
+# Put fn as n's firstname.
+VCardParser.fnToN = (fn) ->
+    fn = fn or ''
+
+    return ['', fn, '', '', '']
+
+# Parse n field from fn, trying to fill in firstname, lastname and middlename.
+VCardParser.fnToNLastnameNFirstname = (fn) ->
+    fn = fn or ''
+
+    [given, middle..., familly] = fn.split ' '
+    parts = [familly, given, middle.join(' '), '', '']
+
+    return parts
+
+# Convert splitted vCard address format, to flat one, but with line breaks.
+# @param value expect an array (adr value, splitted by ';').
+VCardParser.adrArrayToString = (value) ->
+    # UX is partly broken on iOS with adr on more than 2 lines.
+    # So, we convert structured address to 2 lines flat address,
+    # First: Postbox, appartment and street adress on first (field: 0, 1, 2)
+    # Second: Locality, region, postcode, country (field: 3, 4, 5, 6)
+    value = value or []
+
+    structuredToFlat = (t) ->
+        t = t.filter (part) -> return part? and part isnt ''
+        return t.join ', '
+
+    streetPart = structuredToFlat value[0..2]
+    countryPart = structuredToFlat value[3..6]
+
+    flat = streetPart
+    flat += '\n' + countryPart if countryPart isnt ''
+    return flat
+
+# Convert String (of an address) to a [String][7]
+VCardParser.adrStringToArray = (s) ->
+    s = s or ''
+    return ['', '', s, '', '', '', '']
+
+
+
+if module?.exports
+    module.exports = VCardParser
+else
+    window.VCardParser = VCardParser

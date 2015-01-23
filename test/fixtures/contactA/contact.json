@@ -1,0 +1,41 @@
+{
+  "n": "de Cozy;Testé;;;",
+  "fn": "Testé de Cozy",
+  "note": "46b12,\n3ème étage droite.",
+  "datapoints": [
+    {
+      "name": "tel",
+      "type": "cell",
+      "value": "+33612345678"
+    },
+    {
+      "name": "tel",
+      "type": "work",
+      "value": "01 23 45 67 89"
+    },
+    {
+      "name": "email",
+      "type": "work",
+      "value": "test.decozy@cozycloud.cc"
+    },
+    {
+      "name": "email",
+      "type": "home",
+      "value": "testcozy@cozycloud.cc"
+    },
+    {
+      "name": "adr",
+      "type": "home",
+      "value": ["", "", "12, rue René Boulanger\n75010 Paris", "", "", "", ""]
+    },
+    {
+      "name": "adr",
+      "type": "work",
+      "value": ["", "", "4, rue Léon Jouhaux", "Paris", "", "75010", "France"]
+    }
+  ],
+  "carddavuri": "",
+  "title": "",
+  "org":"",
+  "bday": "1989-02-02"
+}
