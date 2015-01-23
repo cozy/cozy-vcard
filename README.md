@@ -2,7 +2,7 @@ cozy-vcard
 =========
 
 [![Build
-Status](https://travis-ci.org/mycozycloud/cozy-vcard.png?branch=master)](https://travis-ci.org/mycozycloud/cozy-vcard)
+Status](https://travis-ci.org/cozy/cozy-vcard.png?branch=master)](https://travis-ci.org/cozy/cozy-vcard)
 
 ## Description
 
