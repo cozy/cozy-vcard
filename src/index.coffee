@@ -14,6 +14,11 @@ else #Browser
 regexps =
         begin:       /^BEGIN:VCARD$/i
         end:         /^END:VCARD$/i
+
+        # Some clients (as thunderbird's addon SOGo) may send non VCARD objects.
+        beginNonVCard:       /^BEGIN:(.*)$/i
+        endNonVCard:         /^END:(.*)$/i
+
         # vCard 2.1 files can use quoted-printable text.
         simple:     /^(version|fn|n|title|org|note)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
@@ -86,8 +91,18 @@ class VCardParser
 
 
     handleLine: (line) ->
-        if regexps.begin.test line
+        if @nonVCard
+            if regexps.endNonVCard.test line
+                if line.match(regexps.endNonVCard)[1] is @nonVCard
+                    @nonVCard = false
+
+            # else ignore current line up to END:@nonVCard .
+
+        else if regexps.begin.test line
             @currentContact = {datapoints:[]}
+
+        else if regexps.beginNonVCard.test line
+            @nonVCard = line.match(regexps.beginNonVCard)[1]
 
         else if regexps.end.test line
             @storeCurrentDatapoint()
