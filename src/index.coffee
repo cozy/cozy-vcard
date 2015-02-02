@@ -20,7 +20,7 @@ regexps =
         endNonVCard:         /^END:(.*)$/i
 
         # vCard 2.1 files can use quoted-printable text.
-        simple:     /^(version|fn|n|title|org|note)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple:     /^(version|fn|n|title|org|note|categories)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
@@ -153,10 +153,13 @@ class VCardParser
             value = VCardParser.unquotePrintable value
         value = VCardParser.unescapeText value
 
-        if key is 'VERSION'
+        key = key.toLowerCase()
+        if key is 'version'
             return @currentversion = value
 
-        else if key in ['TITLE', 'ORG', 'FN', 'NOTE', 'N', 'BDAY']
+        else if key is 'categories'
+            return @currentContact.tags = value.split ','
+        else if key in ['title', 'org', 'fn', 'note', 'n', 'bday']
             return @currentContact[key.toLowerCase()] = value
 
     # handle android-android lines (cursor.item)
@@ -358,6 +361,9 @@ VCardParser.toVCF = (model, picture = null) ->
 
     if model.n?
         out.push "N:#{model.n}"
+
+    if model.tags? and model.tags.length > 0
+        out.push "CATEGORIES:#{model.tags.join ','}"
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
