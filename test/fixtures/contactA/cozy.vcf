@@ -1,14 +1,14 @@
 BEGIN:VCARD
 VERSION:3.0
-UID:92419c7d397efcfdcb55e0cd4e31c76a
+UID:92419c7d397efcfdcb55e0cd4e566acd
 FN:Testé de Cozy
 NOTE:46b12\,\n3ème étage droite.
 N:de Cozy;Testé;;;
-TEL;TYPE=CELL:+33612345678
+CATEGORIES:groupe1,groupe2
+ADR;TYPE=WORK:;;4\, rue Léon Jouhaux\n75010 Paris;;;;
+ADR;TYPE=HOME:;;12\, rue René Boulanger\n75010 Paris;;;;
 TEL;TYPE=WORK:0123456789
+TEL;TYPE=CELL:+33612345678
 EMAIL;TYPE=WORK:test.decozy@cozycloud.cc
 EMAIL;TYPE=HOME:testcozy@cozycloud.cc
-ADR;TYPE=HOME:;;12\, rue René Boulanger\n75010 Paris;;;;
-ADR;TYPE=WORK:;;4\, rue Léon Jouhaux\n75010 Paris;;;;
-X-;TYPE=BIRTHDAY:1989-02-02
 END:VCARD

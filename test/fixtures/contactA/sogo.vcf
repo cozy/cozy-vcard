@@ -1,0 +1,24 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Inverse inc.//SOGo Connector 1.0//EN
+UID:C67C51E2-8A60-0001-38DA-18D01DBF80D0
+N:de Cozy;Testé
+FN:Testé de Cozy
+ORG:CozyCloud;
+CATEGORIES:groupe1,groupe2
+ADR;TYPE=work:;;4\, rue Léon Jouhaux;Paris;;75010;France
+ADR;TYPE=home:;;12\, rue René Boulanger;Paris;;75010;France
+TEL;TYPE=work:01 23 45 67 89
+TEL;TYPE=cell:+33612345678
+X-MOZILLA-HTML:FALSE
+EMAIL;TYPE=work:test.decozy@cozycloud.cc
+EMAIL;TYPE=home:testcozy@cozycloud.cc
+BDAY:1989-02-02
+NOTE:46b12\,\n3ème étage droite.
+END:VCARD
+BEGIN:VLIST
+PRODID:-//Inverse inc.//SOGo Connector 1.0//EN
+VERSION:1.0
+UID:C67C51F7-D870-0001-24D6-9AC4B8A0110D.vlf
+FN:test
+END:VLIST

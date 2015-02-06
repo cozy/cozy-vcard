@@ -158,8 +158,27 @@ class VCardParser
             return @currentversion = value
 
         else if key is 'categories'
-            return @currentContact.tags = value.split ','
-        else if key in ['title', 'org', 'fn', 'note', 'n', 'bday']
+            return @currentContact.tags = value.split /(?!\\),/
+                                            .map VCardParser.unescapeText
+        else if key is 'n'
+            # assert 5 fields, separated by ';'
+            nParts = value.split /(?!\\);/
+            if nParts.length is 5
+                return @currentContact['n'] = value
+
+            else
+                nPartsCleaned = ['', '', '', '', '']
+
+                if nParts.length < 5
+                    nParts.forEach (part, index) -> nPartsCleaned[index] = part
+
+                else # if too much fields, merge everything in firstname.
+                    nParstCleaned[2] = nParts.join ' '
+
+                return @currentContact['n'] = nPartsCleaned.join ';'
+
+
+        else if key in ['title', 'org', 'fn', 'note', 'bday']
             return @currentContact[key.toLowerCase()] = value
 
     # handle android-android lines (cursor.item)
@@ -363,7 +382,9 @@ VCardParser.toVCF = (model, picture = null) ->
         out.push "N:#{model.n}"
 
     if model.tags? and model.tags.length > 0
-        out.push "CATEGORIES:#{model.tags.join ','}"
+        value = model.tags.map VCardParser.escapeText
+                    .join ','
+        out.push "CATEGORIES:#{value}"
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()
