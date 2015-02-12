@@ -14,8 +14,13 @@ else #Browser
 regexps =
         begin:       /^BEGIN:VCARD$/i
         end:         /^END:VCARD$/i
+
+        # Some clients (as thunderbird's addon SOGo) may send non VCARD objects.
+        beginNonVCard:       /^BEGIN:(.*)$/i
+        endNonVCard:         /^END:(.*)$/i
+
         # vCard 2.1 files can use quoted-printable text.
-        simple:     /^(version|fn|n|title|org|note)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple:     /^(version|fn|n|title|org|note|categories)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
@@ -86,8 +91,18 @@ class VCardParser
 
 
     handleLine: (line) ->
-        if regexps.begin.test line
+        if @nonVCard
+            if regexps.endNonVCard.test line
+                if line.match(regexps.endNonVCard)[1] is @nonVCard
+                    @nonVCard = false
+
+            # else ignore current line up to END:@nonVCard .
+
+        else if regexps.begin.test line
             @currentContact = {datapoints:[]}
+
+        else if regexps.beginNonVCard.test line
+            @nonVCard = line.match(regexps.beginNonVCard)[1]
 
         else if regexps.end.test line
             @storeCurrentDatapoint()
@@ -138,10 +153,32 @@ class VCardParser
             value = VCardParser.unquotePrintable value
         value = VCardParser.unescapeText value
 
-        if key is 'VERSION'
+        key = key.toLowerCase()
+        if key is 'version'
             return @currentversion = value
 
-        else if key in ['TITLE', 'ORG', 'FN', 'NOTE', 'N', 'BDAY']
+        else if key is 'categories'
+            return @currentContact.tags = value.split /(?!\\),/
+                                            .map VCardParser.unescapeText
+        else if key is 'n'
+            # assert 5 fields, separated by ';'
+            nParts = value.split /(?!\\);/
+            if nParts.length is 5
+                return @currentContact['n'] = value
+
+            else
+                nPartsCleaned = ['', '', '', '', '']
+
+                if nParts.length < 5
+                    nParts.forEach (part, index) -> nPartsCleaned[index] = part
+
+                else # if too much fields, merge everything in firstname.
+                    nParstCleaned[2] = nParts.join ' '
+
+                return @currentContact['n'] = nPartsCleaned.join ';'
+
+
+        else if key in ['title', 'org', 'fn', 'note', 'bday']
             return @currentContact[key.toLowerCase()] = value
 
     # handle android-android lines (cursor.item)
@@ -343,6 +380,11 @@ VCardParser.toVCF = (model, picture = null) ->
 
     if model.n?
         out.push "N:#{model.n}"
+
+    if model.tags? and model.tags.length > 0
+        value = model.tags.map VCardParser.escapeText
+                    .join ','
+        out.push "CATEGORIES:#{value}"
 
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()

@@ -37,5 +37,6 @@
   "carddavuri": "",
   "title": "",
   "org":"",
-  "bday": "1989-02-02"
+  "bday": "1989-02-02",
+  "tags": ["groupe1", "groupe2"]
 }

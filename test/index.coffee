@@ -104,6 +104,13 @@ describe 'vCard Import', ->
             obtained = obtained.replace /[-\s]/g, ''
             obtained.should.equal expected
 
+        checkGroups = (obtained, expected) ->
+            hasTags = obtained.tags?
+            hasTags.should.be.true
+
+            if hasTags
+                obtained.tags.should.deep.equal expected.tags
+
         contactsEquals = (obtained, expected) ->
             properties = ['n', 'fn', 'note']
             properties.forEach (property) ->
@@ -125,14 +132,18 @@ describe 'vCard Import', ->
 
             datapointsFlat.adr_home.should.be.a 'array'
             adrHomeFlat = VCardParser.adrArrayToString datapointsFlat.adr_home
+
             pass = adrHomeFlat is '12, rue René Boulanger\nParis, 75010, France' or
-                adrHomeFlat is '12, rue René Boulanger\n75010 Paris'
+                adrHomeFlat is '12, rue René Boulanger\n75010 Paris' or
+                adrHomeFlat is '12\, rue René Boulanger\, 75010 Paris'
             pass.should.be.true
 
             datapointsFlat.adr_work.should.be.a 'array'
             adrWorkFlat = VCardParser.adrArrayToString datapointsFlat.adr_work
-            pass = adrHomeFlat is '4, rue Léon Jouhaux\nParis, 75010, France' or
-                adrHomeFlat is '4, rue Léon Jouhaux\n75010 Paris'
+            pass = adrWorkFlat is '4, rue Léon Jouhaux\nParis, 75010, France' or
+                adrWorkFlat is '4, rue Léon Jouhaux\n75010 Paris' or
+                adrWorkFlat is '4\, rue Léon Jouhaux\, 75010 Paris'
+            pass.should.be.true
 
 
         expected = JSON.parse fs.readFileSync 'test/fixtures/contactA/contact.json'
@@ -141,6 +152,7 @@ describe 'vCard Import', ->
         it "should parse a cozy vCard", ->
             parser.read fs.readFileSync 'test/fixtures/contactA/cozy.vcf', 'utf8'
             contactsEquals parser.contacts[0], expected
+            checkGroups parser.contacts[0], expected
 
         it "should parse a google vCard", ->
             parser.read fs.readFileSync 'test/fixtures/contactA/google.vcf', 'utf8'
@@ -175,12 +187,37 @@ describe 'vCard Import', ->
             VCardParser.adrArrayToString dps.adr_work
                 .should.equal '4, rue Léon Jouhaux\nParis, 75010, France'
 
+        it "should parse a sogo (thunderbird)  vCard", ->
+            parser.read fs.readFileSync 'test/fixtures/contactA/sogo.vcf', 'utf8'
+            contactsEquals parser.contacts[5], expected
+            checkGroups parser.contacts[5], expected
+
+        it "should parse a davdroid (Android)  vCard", ->
+            parser.read fs.readFileSync 'test/fixtures/contactA/davdroid.vcf', 'utf8'
+            contactsEquals parser.contacts[6], expected
+            checkGroups parser.contacts[6], expected
+
+        it "should parse a iOS from a sync with cozy vCard", ->
+            parser.read fs.readFileSync 'test/fixtures/contactA/ios_fromcozysync.vcf', 'utf8'
+            contactsEquals parser.contacts[7], expected
+            checkGroups parser.contacts[7], expected
+
+        it "should parse a sogo (thunderbird)  from a sync with cozy vCard", ->
+            parser.read fs.readFileSync 'test/fixtures/contactA/sogo_fromcozysync.vcf', 'utf8'
+            contactsEquals parser.contacts[8], expected
+            checkGroups parser.contacts[8], expected
+
+
         it "should toVCF and parse back", ->
             reparser = new VCardParser()
             reparser.read VCardParser.toVCF parser.contacts[0]
             reparser.read VCardParser.toVCF parser.contacts[1]
             reparser.read VCardParser.toVCF parser.contacts[2]
             reparser.read VCardParser.toVCF parser.contacts[3]
+            reparser.read VCardParser.toVCF parser.contacts[5]
+            reparser.read VCardParser.toVCF parser.contacts[6]
+            reparser.read VCardParser.toVCF parser.contacts[7]
+            reparser.read VCardParser.toVCF parser.contacts[8]
 
             reparser.contacts.forEach (obtained) ->
                 contactsEquals obtained, expected

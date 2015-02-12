@@ -1,0 +1,19 @@
+BEGIN:VCARD
+VERSION:3.0
+END:
+UID:2b838d8f3980384187b8f6ee7f00b372
+FN:Testé de Cozy
+N:de Cozy;Testé;;;
+TEL;TYPE=work:0123456789
+TEL;TYPE=cell:+33612345678
+EMAIL;TYPE=work:test.decozy@cozycloud.cc
+EMAIL;TYPE=home:testcozy@cozycloud.cc
+NOTE:46b12\,\n3ème étage droite.
+ADR;TYPE=work:;;4\, rue Léon Jouhaux\n75010 Paris;;;;
+LABEL;TYPE=work:4\, rue Léon Jouhaux\n75010 Paris  \n 
+ADR;TYPE=home:;;12\, rue René Boulanger\n75010 Paris;;;;
+LABEL;TYPE=home:12\, rue René Boulanger\n75010 Paris  \n 
+CATEGORIES:groupe1,groupe2
+PRODID:DAVdroid/0.6.8 (ez-vcard/0.9.6)
+REV:20150206T073347Z
+END:VCARD
