@@ -1,5 +1,8 @@
 # Small module to generate vcard file from JS Objects or to parse vcard file
 # to obtain explicit JS Objects.
+#
+# This lib aims to handle parsing of vCards coming from Google Contacts (vCard
+# 3.0), Android (vCard 2.1).
 
 if module?.exports # NodeJS
     utf8 = require 'utf8'
@@ -20,15 +23,18 @@ regexps =
         endNonVCard:         /^END:(.*)$/i
 
         # vCard 2.1 files can use quoted-printable text.
-        simple:     /^(version|fn|n|title|org|note|categories)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple:     /^(version|fn|n|title|org|note|categories|bday)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        googleim:     /^X-([^\:]+)\:(.+)$/i
         android:     /^x-android-custom\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex:     /^([^\:\;]+);([^\:]+)\:(.+)$/
         property:    /^(.+)=(.+)$/
 
-ANDROID_RELATION_TYPES = ['custom', 'assistant', 'brother', 'child',
-            'domestic partner', 'father', 'friend', 'manager', 'mother',
-            'parent', 'partner', 'referred by', 'relative', 'sister', 'spouse']
+ANDROID_RELATION_TYPES = [
+    'custom', 'assistant', 'brother', 'child',
+    'domestic partner', 'father', 'friend', 'manager', 'mother',
+    'parent', 'partner', 'referred by', 'relative', 'sister', 'spouse'
+]
 
 class VCardParser
 
@@ -114,6 +120,9 @@ class VCardParser
         else if regexps.android.test line
             @handleAndroidLine line
 
+        else if regexps.googleim.test line
+            @handleGoogleImLine line
+
         else if regexps.composedkey.test line
             @handleComposedLine line
 
@@ -181,6 +190,13 @@ class VCardParser
         else if key in ['title', 'org', 'fn', 'note', 'bday']
             return @currentContact[key.toLowerCase()] = value
 
+    # Handle X- fields like:
+    # X-SKYPE: myskype
+    handleGoogleImLine: (line) ->
+        [all, key, value] = line.match regexps.googleim
+        @currentContact.datapoints.push
+            name: 'chat', type: key.toLowerCase(), value: value
+
     # handle android-android lines (cursor.item)
     #@TODO support other possible cursors
     handleAndroidLine: (line) ->
@@ -233,7 +249,7 @@ class VCardParser
                 key = 'about'
 
             if key is 'x-abrelatednames'
-                key = 'other'
+                key = 'relations'
 
             if key is 'adr'
                 if Array.isArray value
@@ -297,7 +313,17 @@ class VCardParser
             # property is XXX=YYYY
             if match = property.match regexps.property
                 [all, pname, pvalue] = match
+
+                # Handles case where the same property is declared twice like
+                # in:
+                # TYPE="work";TYPE="fax"
                 pvalue = pvalue.toLowerCase()
+                #pvalue = 'home' if pvalue is 'internet'
+
+                previousValue = dp[pname.toLowerCase()]
+                # Google export email with type internet
+                if previousValue? and previousValue isnt 'internet'
+                    pvalue = "#{previousValue} #{pvalue}"
 
             else if property is 'PREF'
                 pname = 'pref'
@@ -315,7 +341,7 @@ class VCardParser
             # Google, iOS use many type fields.
             # We decide home, work, cell have priotiry over others.
             if pname is 'type'
-                @addTypeProperty dp, pvalue
+                @addTypeProperty dp, pvalue if pvalue.length > 0
 
             else
                 dp[pname.toLowerCase()] = pvalue
