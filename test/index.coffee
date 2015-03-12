@@ -396,10 +396,20 @@ describe 'Full contact vcard (tricky fields)', ->
             contact.bday.should.equal '2015-03-03'
         it "org", ->
             contact.org.should.equal 'SuperCorp'
+        it "department", ->
+            contact.department.should.equal 'Department'
         it "title", ->
             contact.title.should.equal 'Chairman'
         it "nickname", ->
             contact.nickname.should.equal 'Pseudo'
+
+
+        it "instant messaging accounts", ->
+            ims = _.filter datapoints, (point) ->
+                point.name is 'chat'
+            ims.length.should.equal 9
+            ims[0].type.should.equal 'skype-username'
+            ims[0].value.should.equal 'skypeaccount'
 
 
 
@@ -415,6 +425,8 @@ describe 'Full contact vcard (tricky fields)', ->
         it "org", ->
             test = "ORG:SuperCorp" in vcf
             test.should.be.ok
+
+        it.skip "department", ->
 
         it "bday", ->
             test = "BDAY:1961-04-05" in vcf

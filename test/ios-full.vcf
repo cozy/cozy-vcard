@@ -1,0 +1,123 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//iOS 8.1.1//EN
+N:Contact;Full;Middle;Dr.;Suffix
+FN:Dr. Full Middle Contact Suffix
+NICKNAME:Pseudo
+X-PHONETIC-FIRST-NAME:Phonetic First Name
+X-PHONETIC-MIDDLE-NAME:Phonetic Middle Name
+X-PHONETIC-LAST-NAME:Phonetic Last Name
+ORG:SuperCorp;Department
+TITLE:Chairman
+EMAIL;type=INTERNET;type=HOME;type=pref:test@cozy.io
+EMAIL;type=INTERNET;type=WORK:test2@cozy.io
+item1.EMAIL;type=INTERNET:test3@cozy.io
+item1.X-ABLabel:iCloud
+item2.EMAIL;type=INTERNET:test4@cozy.io
+item2.X-ABLabel:_$!<Other>!$_
+item3.EMAIL;type=INTERNET:test5@cozy.io
+item3.X-ABLabel:Customemail
+EMAIL;type=INTERNET;type=HOME:gelnior@free.fr
+TEL;type=HOME;type=VOICE;type=pref:0102030400
+TEL;type=WORK;type=VOICE:0102030401
+TEL;type=IPHONE;type=CELL;type=VOICE:0102030402
+TEL;type=CELL;type=VOICE:0102030403
+TEL;type=MAIN:010203040Nickname4
+TEL;type=HOME;type=FAX:0102030405
+TEL;type=WORK;type=FAX:0102030406
+TEL;type=PAGER:0102030407
+TEL;type=OTHER;type=VOICE:0102030408
+item4.TEL:0102030409
+item4.X-ABLabel:Customphone
+TEL;type=HOME;type=VOICE:0867 45346
+item5.ADR;type=HOME;type=pref:;;52\nRue Bonsergent;Paris;Ile De France;75010;France
+item5.X-ABADR:fr
+item6.ADR;type=WORK:;;53\nRue Bonsergent;Paris;Ile De France;75010;France
+item6.X-ABADR:fr
+item7.ADR;type=OTHER:;;54\nRue Bonsergent;Paris;Ile De France;75010;France
+item7.X-ABADR:fr
+item8.ADR;type=HOME:;;55\nRue Bonsergent;75010;Ile De France;paris;France
+item8.X-ABLabel:Customaddress
+item8.X-ABADR:fr
+item9.URL;type=pref:http://homepage.fr
+item9.X-ABLabel:_$!<HomePage>!$_
+URL;type=HOME:http://home.fr
+URL;type=WORK:http://work.fr
+item10.URL:http://other.fr
+item10.X-ABLabel:_$!<Other>!$_
+item11.URL:htttp://custom.fr
+item11.X-ABLabel:Custom
+BDAY;value=date:2015-03-03
+item12.X-MSN:msn
+item12.X-ABLabel:MSN
+item13.X-AIM:aim
+item13.X-ABLabel:AIM
+item14.X-YAHOO:yahoo
+item14.X-ABLabel:Yahoo
+item15.X-ICQ:icq
+item15.X-ABLabel:ICQ
+item16.X-JABBER:jabber
+item16.X-ABLabel:Jabber
+item17.IMPP;X-SERVICE-TYPE=Skype;type=pref:skype:skype
+item17.X-ABLabel:Skype
+item18.IMPP;X-SERVICE-TYPE=MSN:msnim:msn
+item18.X-ABLabel:MSN
+item19.IMPP;X-SERVICE-TYPE=GoogleTalk:xmpp:gtalk
+item19.X-ABLabel:GoogleTalk
+item20.IMPP;X-SERVICE-TYPE=Facebook:xmpp:facebook
+item20.X-ABLabel:Facebook
+item21.IMPP;X-SERVICE-TYPE=AIM:aim:aim
+item21.X-ABLabel:AIM
+item22.IMPP;X-SERVICE-TYPE=Yahoo:ymsgr:yahoo
+item22.X-ABLabel:Yahoo
+item23.IMPP;X-SERVICE-TYPE=ICQ:aim:icq
+item23.X-ABLabel:ICQ
+item24.IMPP;X-SERVICE-TYPE=Jabber:xmpp:jabber
+item24.X-ABLabel:Jabber
+item25.IMPP;X-SERVICE-TYPE=QQ:x-apple:qq
+item25.X-ABLabel:QQ
+item26.IMPP;X-SERVICE-TYPE=GaduGadu:x-apple:gad
+item26.X-ABLabel:GaduGadu
+item27.IMPP;X-SERVICE-TYPE=Customim:x-apple:custom%20im
+item27.X-ABLabel:Skype
+X-SOCIALPROFILE;type=twitter;x-user=twitter:http://twitter.com/twitter
+X-SOCIALPROFILE;type=facebook;x-user=facebook:http://www.facebook.com/facebook
+X-SOCIALPROFILE;type=flickr;x-user=flickr:http://www.flickr.com/photos/flickr
+X-SOCIALPROFILE;type=linkedin;x-user=linkedin:http://www.linkedin.com/in/linkedin
+X-SOCIALPROFILE;type=myspace;x-user=myspace:http://www.myspace.com/myspace
+X-SOCIALPROFILE;type=sinaweibo;x-user=sina:http://weibo.com/n/sina
+X-SOCIALPROFILE;type=Customsocial;x-user=custom social:x-apple:custom%20social
+item28.X-ABDATE;type=pref:2013-03-12
+item28.X-ABLabel:_$!<Anniversary>!$_
+item29.X-ABDATE:2012-03-12
+item29.X-ABLabel:_$!<Other>!$_
+item30.X-ABDATE:2006-03-12
+item30.X-ABLabel:Customdate
+item31.X-ABRELATEDNAMES;type=pref:Mother
+item31.X-ABLabel:_$!<Mother>!$_
+item32.X-ABRELATEDNAMES:Father
+item32.X-ABLabel:_$!<Father>!$_
+item33.X-ABRELATEDNAMES:Parent
+item33.X-ABLabel:_$!<Parent>!$_
+item34.X-ABRELATEDNAMES:Brother
+item34.X-ABLabel:_$!<Brother>!$_
+item35.X-ABRELATEDNAMES:Sister
+item35.X-ABLabel:_$!<Sister>!$_
+item36.X-ABRELATEDNAMES:Child
+item36.X-ABLabel:_$!<Child>!$_
+item37.X-ABRELATEDNAMES:Friend
+item37.X-ABLabel:_$!<Friend>!$_
+item38.X-ABRELATEDNAMES:Spouse
+item38.X-ABLabel:_$!<Spouse>!$_
+item39.X-ABRELATEDNAMES:Partner
+item39.X-ABLabel:_$!<Partner>!$_
+item40.X-ABRELATEDNAMES:Assistant
+item40.X-ABLabel:_$!<Assistant>!$_
+item41.X-ABRELATEDNAMES:Manager
+item41.X-ABLabel:_$!<Manager>!$_
+item42.X-ABRELATEDNAMES:Other
+item42.X-ABLabel:_$!<Other>!$_
+item43.X-ABRELATEDNAMES:Custom Relation
+item43.X-ABLabel:Customrelation
+X-ALTBDAY;CALSCALE=chinese:007800301201
+END:VCARD
