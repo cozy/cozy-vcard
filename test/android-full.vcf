@@ -3,7 +3,7 @@ VERSION:2.1
 N:Smith;Jhon;Middle;Dr.;Suffix
 FN:Dr. Jhon middle 2, Suffix
 X-PHONETIC-FIRST-NAME:Jon
-X-PHONETIC-MIDDLE-NAME:Middel
+X-PHONETIC-MIDDLE-NAME:Middle
 X-PHONETIC-LAST-NAME:Smiss
 X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;Pseudo;1;;;;;;;;;;;;;
 BDAY:2015-03-03
