@@ -4,11 +4,11 @@ PRODID:-//Apple Inc.//iOS 8.1.2//EN
 N:de Cozy;Testé;;;
 FN:Testé de Cozy
 ORG:Société Cozycloud;
-EMAIL;type=HOME:testcozy@cozycloud.cc
-EMAIL;type=WORK:test.decozy@cozycloud.cc
-TEL;type=CELL:+33 6 12 34 56 78
-TEL;type=WORK:01 23 45 67 89
-item1.ADR;type=HOME:;;12\, rue René Boulanger;Paris;;75010;France
+EMAIL;type=INTERNET;type=HOME;type=pref:testcozy@cozycloud.cc
+EMAIL;type=INTERNET;type=WORK:test.decozy@cozycloud.cc
+TEL;type=CELL;type=VOICE;type=pref:+33 6 12 34 56 78
+TEL;type=WORK;type=VOICE:01 23 45 67 89
+item1.ADR;type=HOME;type=pref:;;12\, rue René Boulanger;Paris;;75010;France
 item1.X-ABADR:fr
 item2.ADR;type=WORK:;;4\, rue Léon Jouhaux;Paris;;75010;France
 item2.X-ABADR:fr
