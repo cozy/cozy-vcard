@@ -12,14 +12,22 @@ easier to parse vcard files.
 ## Usage
 
 ```javascript
-    vcf = fs.readFileSync('test/friend.vcf', 'utf8');
-    parser = new VCardParser(vcf);
-    contact = parser.components[0];
-    someprop = contact.properties[0]:
+    # Import
+
+    var vcf = fs.readFileSync('test/friend.vcf', 'utf8');
+    var vparser = new VCardParser(vcf);
+    var vcontact = parser.components[0];
+    var vsomeprop = contact.properties[0]:
+    // vcontact.org == 'SuperCorp'
     // someprop.value == '+33123456789'
     // someprop.name == 'tel'
     // someprop.type == 'home'
     // someprop.pref == true
+
+
+    # Export
+    var vcfString = VCardParser.toVCF(vcontact);
+    var vcf = fs.writeFileSync('test/friend-export.vcf', vcfString, 'utf8');
 ```
 
 ## What is Cozy?
