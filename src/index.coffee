@@ -22,7 +22,7 @@ regexps =
         endNonVCard:         /^END:(.*)$/i
 
         # vCard 2.1 files can use quoted-printable text.
-        simple: /^(version|fn|n|title|org|note|categories|bday|url)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple: /^(version|fn|n|title|org|note|categories|bday|url|nickname)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex: /^([^\:\;]+);([^\:]+)\:(.+)$/
         property: /^(.+)=(.+)$/
@@ -50,6 +50,7 @@ ANDROID_RELATIONS = [
     'parent', 'partner', 'referred by', 'relative', 'sister', 'spouse'
 ]
 
+BASE_FIELDS = ['fn', 'bday', 'org', 'title', 'url', 'note', 'nickname']
 
 capitalizeFirstLetter = (string) ->
     "#{string.charAt(0).toUpperCase()}#{string.toLowerCase().slice(1)}"
@@ -253,12 +254,12 @@ class VCardParser
 
         # Extract vcard formatting version.
         if key is 'version'
-            return @currentversion = value
+            @currentversion = value
 
         # Extract categories as tags. They are similare concepts.
         else if key is 'categories'
-            return @currentContact.tags = value.split /(?!\\),/
-                                            .map VCardParser.unescapeText
+            @currentContact.tags = value.split /(?!\\),/
+                                        .map VCardParser.unescapeText
 
         # Build name from n field.
         else if key is 'n'
@@ -266,7 +267,7 @@ class VCardParser
             # assert 5 fields, separated by ';'
             nParts = value.split /(?!\\);/
             if nParts.length is 5
-                return @currentContact['n'] = value
+                @currentContact['n'] = value
 
             else
                 nPartsCleaned = ['', '', '', '', '']
@@ -275,14 +276,24 @@ class VCardParser
                     nParts.forEach (part, index) -> nPartsCleaned[index] = part
 
                 else # if too much fields, merge everything in firstname.
-                    nParstCleaned[2] = nParts.join ' '
+                    nPartsCleaned[2] = nParts.join ' '
 
-                return @currentContact['n'] = nPartsCleaned.join ';'
+                @currentContact['n'] = nPartsCleaned.join ';'
 
 
         # Direct field attached directly to the datapoint object.
-        else if key in ['title', 'org', 'fn', 'url', 'note', 'bday', 'url']
-            return @currentContact[key.toLowerCase()] = value
+        else if key in BASE_FIELDS
+
+            # Ios include department in the org field (company;department)
+            if key is 'org'
+                values = value.split ';'
+
+                if values.length is 2
+
+                    @currentContact.department = values[1]
+                    value = values[0]
+
+            @currentContact[key.toLowerCase()] = value
 
 
     # Handle X- fields like (called extended fields by the RFC, those one are
@@ -522,7 +533,7 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
     out.push "UID:#{uid}"
 
     # Base fields, simple with no extra attributes.
-    for prop in ['fn', 'bday', 'org', 'title', 'url', 'note']
+    for prop in BASE_FIELDS
         value = model[prop]
         value = VCardParser.escapeText value if value
         out.push "#{prop.toUpperCase()}:#{value}" if value
