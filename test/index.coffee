@@ -349,7 +349,7 @@ describe 'Full contact vcard (tricky fields)', ->
             contact.bday.should.equal '2015-03-03'
         it "org", ->
             contact.org.should.equal 'SuperCorp'
-        it "tile", ->
+        it "title", ->
             contact.title.should.equal 'Chairman'
         it "url", ->
             contact.url.should.equal 'http://cozy.io'
@@ -384,6 +384,23 @@ describe 'Full contact vcard (tricky fields)', ->
             relations.length.should.equal 14
             relations[0].type.should.equal 'assistant'
             relations[0].value.should.equal 'Assistant'
+
+
+    describe 'iOS vcard should retrieve', ->
+        parser = new VCardParser()
+        parser.read fs.readFileSync 'test/ios-full.vcf', 'utf8'
+        contact = parser.contacts[0]
+        datapoints = contact.datapoints
+
+        it "bday", ->
+            contact.bday.should.equal '2015-03-03'
+        it "org", ->
+            contact.org.should.equal 'SuperCorp'
+        it "title", ->
+            contact.title.should.equal 'Chairman'
+        it "nickname", ->
+            contact.nickname.should.equal 'Pseudo'
+
 
 
     describe 'Export', ->
