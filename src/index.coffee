@@ -35,8 +35,10 @@ regexps =
 
 IM_VENDORS = [
     'skype', 'skype-username', 'aim', 'msn', 'yahoo', 'qq',
-    'google-talk', 'gtalk', 'icq', 'jabber', 'sip'
+    'google-talk', 'gtalk', 'icq', 'jabber', 'sip', 'gad'
 ]
+#item26.IMPP;X-SERVICE-TYPE=GaduGadu:x-apple:gad
+
 
 PHONETIC_FIELDS = [
     'phonetic-first-name'
@@ -348,6 +350,19 @@ class VCardParser
                 @currentContact.nickname = value
 
 
+    handleCurrentSpecialCases: ->
+        dp = @currentDatapoint
+
+        # iOS cases
+        if dp?.type in IM_VENDORS
+            dp.name = 'chat'
+            if dp['x-service-type']?
+                dp.value = dp.value.split(':')[1]
+
+                if dp['x-service-type'] not in IM_VENDORS
+                    dp.type = dp['x-service-type']
+
+
     # Handle multi-lines Data Points (custom label)
     # When there are several lines, the datapoint is temporarly stored to
     # be processed after.
@@ -355,6 +370,7 @@ class VCardParser
         [all, itemidx, part, value] = line.match regexps.composedkey
 
         if @currentIndex is null or @currentIndex isnt itemidx
+            @handleCurrentSpecialCases()
             @storeCurrentDatapoint()
             @currentDatapoint = {}
 
