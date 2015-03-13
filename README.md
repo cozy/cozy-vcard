@@ -30,6 +30,13 @@ easier to parse vcard files.
     var vcf = fs.writeFileSync('test/friend-export.vcf', vcfString, 'utf8');
 ```
 
+## Format
+
+This vCard importer doesn't try to follow the official RFC. It is just made to
+handle properly vCards from major vendors: Google, Android, iOS, OSX and
+thunderbird.
+
+
 ## What is Cozy?
 
 ![Cozy Logo](https://raw.github.com/mycozycloud/cozy-setup/gh-pages/assets/images/happycloud.png)
