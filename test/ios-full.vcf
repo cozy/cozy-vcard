@@ -36,7 +36,7 @@ item6.ADR;type=WORK:;;53\nRue Bonsergent;Paris;Ile De France;75010;France
 item6.X-ABADR:fr
 item7.ADR;type=OTHER:;;54\nRue Bonsergent;Paris;Ile De France;75010;France
 item7.X-ABADR:fr
-item8.ADR;type=HOME:;;55\nRue Bonsergent;75010;Ile De France;paris;France
+item8.ADR;type=HOME:;;55\nRue Bonsergent;75010;Ile De France;Paris;France
 item8.X-ABLabel:Customaddress
 item8.X-ABADR:fr
 item9.URL;type=pref:http://homepage.fr
@@ -45,7 +45,7 @@ URL;type=HOME:http://home.fr
 URL;type=WORK:http://work.fr
 item10.URL:http://other.fr
 item10.X-ABLabel:_$!<Other>!$_
-item11.URL:htttp://custom.fr
+item11.URL:http://custom.fr
 item11.X-ABLabel:Custom
 BDAY;value=date:2015-03-03
 item12.X-MSN:msn
@@ -80,13 +80,13 @@ item26.IMPP;X-SERVICE-TYPE=GaduGadu:x-apple:gad
 item26.X-ABLabel:GaduGadu
 item27.IMPP;X-SERVICE-TYPE=Customim:x-apple:custom%20im
 item27.X-ABLabel:Skype
-X-SOCIALPROFILE;type=twitter;x-user=twitter:http://twitter.com/twitter
+X-SOCIALPROFILE;type=twitter;x-user=twitteruser:http://twitter.com/twitteruser
 X-SOCIALPROFILE;type=facebook;x-user=facebook:http://www.facebook.com/facebook
 X-SOCIALPROFILE;type=flickr;x-user=flickr:http://www.flickr.com/photos/flickr
 X-SOCIALPROFILE;type=linkedin;x-user=linkedin:http://www.linkedin.com/in/linkedin
 X-SOCIALPROFILE;type=myspace;x-user=myspace:http://www.myspace.com/myspace
 X-SOCIALPROFILE;type=sinaweibo;x-user=sina:http://weibo.com/n/sina
-X-SOCIALPROFILE;type=Customsocial;x-user=custom social:x-apple:custom%20social
+X-SOCIALPROFILE;type=Customsocial;x-user=custom socialuser:x-apple:custom%20socialusers
 item28.X-ABDATE;type=pref:2013-03-12
 item28.X-ABLabel:_$!<Anniversary>!$_
 item29.X-ABDATE:2012-03-12

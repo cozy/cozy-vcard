@@ -190,6 +190,8 @@ describe 'vCard Import', ->
             properties.forEach (prop) ->
                 datapointsFlat[prop].should.equal expected.datapointsFlat[prop]
 
+            if datapointsFlat['adr_home fr']?
+                datapointsFlat.adr_home = datapointsFlat['adr_home fr']
             datapointsFlat.adr_home.should.be.a 'array'
             adrHomeFlat = VCardParser.adrArrayToString datapointsFlat.adr_home
 
@@ -199,7 +201,8 @@ describe 'vCard Import', ->
                 adrHomeFlat is '12\, rue René Boulanger\, 75010 Paris'
             pass.should.be.true
 
-            datapointsFlat.adr_work.should.be.a 'array'
+            if datapointsFlat['adr_work fr']?
+                datapointsFlat.adr_work = datapointsFlat['adr_work fr']
             adrWorkFlat = VCardParser.adrArrayToString datapointsFlat.adr_work
             pass = \
                 adrWorkFlat is '4, rue Léon Jouhaux\nParis, 75010, France' or
@@ -403,66 +406,160 @@ describe 'Full contact vcard (tricky fields)', ->
         it "nickname", ->
             contact.nickname.should.equal 'Pseudo'
 
-
         it "instant messaging accounts", ->
             ims = _.filter datapoints, (point) ->
                 point.name is 'chat'
-            ims.length.should.equal 9
-            ims[0].type.should.equal 'skype-username'
-            ims[0].value.should.equal 'skypeaccount'
+            ims.length.should.equal 16
+            ims[0].type.should.equal 'msn'
+            ims[0].value.should.equal 'msn'
+            ims[10].value.should.equal 'yahoo'
+            ims[10].type.should.equal 'yahoo'
+            ims[10]['x-service-type'].should.equal 'yahoo'
+            ims[15].value.should.equal 'custom%20im'
+            ims[15].type.should.equal 'customim'
+            ims[15]['x-service-type'].should.equal 'customim'
 
+        it "phonetic name", ->
+            abouts = _.filter datapoints, (point) ->
+                point.name is 'about'
+            abouts.length.should.equal 6
+            abouts[0].type.should.equal 'phonetic first name'
+            abouts[0].value.should.equal 'Phonetic First Name'
+            abouts[1].type.should.equal 'phonetic middle name'
+            abouts[1].value.should.equal 'Phonetic Middle Name'
+            abouts[2].type.should.equal 'phonetic last name'
+            abouts[2].value.should.equal 'Phonetic Last Name'
+
+        it "emails", ->
+            emails = _.filter datapoints, (point) ->
+                point.name is 'email'
+            emails.length.should.equal 6
+            emails[0].type.should.equal 'home pref'
+            emails[0].value.should.equal 'test@cozy.io'
+            emails[4].type.should.equal 'customemail'
+            emails[4].value.should.equal 'test5@cozy.io'
+
+        it "tels", ->
+            tels = _.filter datapoints, (point) ->
+                point.name is 'tel'
+            tels[0].type.should.equal 'home voice pref'
+            tels[0].value.should.equal '0102030400'
+            tels[9].type.should.equal 'customphone'
+            tels[9].value.should.equal '0102030409'
+
+        it "address custom", ->
+            addrs = _.filter datapoints, (point) ->
+                point.name is 'adr'
+            addrs.length.should.equal 4
+            addrs[3].type.should.equal 'home customaddress fr'
+            addrs[3].value[2].should.equal '55\nRue Bonsergent'
+            addrs[3].value[3].should.equal '75010'
+            addrs[3].value[4].should.equal 'Ile De France'
+            addrs[3].value[5].should.equal 'Paris'
+            addrs[3].value[6].should.equal 'France'
+
+        it "urls", ->
+            urls = _.filter datapoints, (point) ->
+                point.name is 'url'
+            urls.length.should.equal 5
+            urls[0].type.should.equal 'homepage'
+            urls[0].value.should.equal 'http://homepage.fr'
+            urls[4].type.should.equal 'custom'
+            urls[4].value.should.equal 'http://custom.fr'
+
+        it "social profile", ->
+            profiles = _.filter datapoints, (point) ->
+                point.name is 'social'
+
+            profiles.length.should.be.equal 7
+            profiles[0].type.should.equal 'twitter'
+            profiles[0].value.should.equal 'twitteruser'
+            profiles[6].type.should.equal 'customsocial'
+            profiles[6].value.should.equal 'custom socialuser'
+
+        it "anniversary", ->
+            abouts = _.filter datapoints, (point) ->
+                point.name is 'about'
+            abouts.length.should.equal 6
+            abouts[3].type.should.equal 'anniversary'
+            abouts[3].value.should.equal '2013-03-12'
+            abouts[4].type.should.equal 'other'
+            abouts[4].value.should.equal '2012-03-12'
+            abouts[5].type.should.equal 'customdate'
+            abouts[5].value.should.equal '2006-03-12'
+
+        it "relations", ->
+            relations = _.filter datapoints, (point) ->
+                point.name is 'relation'
+            relations.length.should.equal 13
+            relations[0].type.should.equal 'mother'
+            relations[0].value.should.equal 'Mother'
+            relations[12].type.should.equal 'customrelation'
+            relations[12].value.should.equal 'Custom Relation'
 
 
     describe 'Export', ->
-        parser = new VCardParser()
-        parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
-        contact = parser.contacts[0]
-        contact.nickname = "Nickname"
 
-        vcf = VCardParser.toVCF(contact).split('\n')
-        console.log vcf.join('\n')
+        describe 'Google', ->
+            parser = new VCardParser()
+            parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
+            contact = parser.contacts[0]
 
-        it "org", ->
-            test = "ORG:SuperCorp" in vcf
-            test.should.be.ok
+            vcf = VCardParser.toVCF(contact).split('\n')
 
-        it.skip "department", ->
+            it "org", ->
+                test = "ORG:SuperCorp" in vcf
+                test.should.be.ok
 
-        it "bday", ->
-            test = "BDAY:1961-04-05" in vcf
-            test.should.be.ok
+            it "bday", ->
+                test = "BDAY:1961-04-05" in vcf
+                test.should.be.ok
 
-        it "title", ->
-            test = "TITLE:Chairman" in vcf
-            test.should.be.ok
+            it "title", ->
+                test = "TITLE:Chairman" in vcf
+                test.should.be.ok
 
-        it "tel composed of several names", ->
-            test = "TEL;TYPE=WORK;TYPE=FAX:+1 212 555 2345" in vcf
-            test.should.be.ok
+            it "tel composed of several names", ->
+                test = "TEL;TYPE=WORK;TYPE=FAX:+1 212 555 2345" in vcf
+                test.should.be.ok
 
-        it "relations", ->
-            test = "item17.X-ABRELATEDNAMES:Big Boss" in vcf
-            test.should.be.ok
-            test = "item17.X-ABLabel:_$!<Manager>!$_" in vcf
-            test.should.be.ok
-            test = "X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Big Boss;7;;;;;;;;;;;;;" in vcf
-            test.should.be.ok
+            it "relations", ->
+                test = "item17.X-ABRELATEDNAMES:Big Boss" in vcf
+                test.should.be.ok
+                test = "item17.X-ABLabel:_$!<Manager>!$_" in vcf
+                test.should.be.ok
+                test = "X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Big Boss;7;;;;;;;;;;;;;" in vcf
+                test.should.be.ok
 
-        it "url", ->
-            test = "item2.URL:http://blog.example.com/" in vcf
-            test.should.be.ok
-            test = "item2.X-ABLabel:BLOG" in vcf
-            test.should.be.ok
+            it "url", ->
+                test = "item2.URL:http://blog.example.com/" in vcf
+                test.should.be.ok
+                test = "item2.X-ABLabel:BLOG" in vcf
+                test.should.be.ok
 
-        it "skype", ->
-            test = "X-SKYPE-USERNAME:Skype" in vcf
-            test.should.be.ok
-            test = "X-SKYPE:Skype" in vcf
-            test.should.be.ok
+            it "skype", ->
+                test = "X-SKYPE-USERNAME:Skype" in vcf
+                test.should.be.ok
+                test = "X-SKYPE:Skype" in vcf
+                test.should.be.ok
 
-        it.skip "died", ->
-        it.skip "anniversary", ->
+            it.skip "died", ->
+            it.skip "anniversary", ->
 
-        it.skip "nickname", ->
-        it.skip "phonetic fields", ->
+        describe 'iOS', ->
+            parser = new VCardParser()
+            parser.read fs.readFileSync 'test/ios-full.vcf', 'utf8'
+            contact = parser.contacts[0]
 
+            vcf = VCardParser.toVCF(contact).split('\n')
+
+            it "department", ->
+                test = 'ORG:SuperCorp;Department' in vcf
+                test.should.be.ok
+
+            it "nickname", ->
+                test = 'NICKNAME:Pseudo' in vcf
+                test.should.be.ok
+
+            it.skip "phonetic fields", ->
+            it.skip "social profile", ->
