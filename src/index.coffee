@@ -110,17 +110,8 @@ class VCardParser
     # Google, iOS use many type fields.
     # We decide home, work, cell have priotiry over others.
     addTypeProperty: (dp, pvalue) ->
-        if 'type' of dp
-            dp.typesOther = dp.typesOther or []
-
-            # It has priority
-            if pvalue in ['home', 'work', 'cell']
-                oldTypeValue = dp.type
-                dp.type = pvalue
-                dp.typesOther.push oldTypeValue
-
-            else
-                dp.typesOther.push pvalue
+        if dp.type? and dp.type isnt 'internet'
+            dp.type = "#{dp.type} #{pvalue}"
 
         else
             dp.type = pvalue
@@ -207,7 +198,7 @@ class VCardParser
 
         # Here we have a new contact to parse.
         else if regexps.begin.test line
-            @currentContact = {datapoints:[]}
+            @currentContact = datapoints: []
 
         # Here we detect vCards that don't follow the right format.
         else if regexps.beginNonVCard.test line
@@ -291,11 +282,13 @@ class VCardParser
                 values = value.split ';'
 
                 if values.length is 2
-
+                    @currentContact.org = values[0]
                     @currentContact.department = values[1]
-                    value = values[0]
+                else
+                    @currentContact.org = value
 
-            @currentContact[key.toLowerCase()] = value
+            else
+                @currentContact[key.toLowerCase()] = value
 
 
     # Handle X- fields like (called extended fields by the RFC, those one are
@@ -303,7 +296,7 @@ class VCardParser
     # X-SKYPE: myskype
     # It changes depending on vcard vendors, so that funcs handle many specific
     # cases.
-    handleExtendedLine: (line, android) ->
+    handleExtendedLine: (line) ->
         [all, key, value] = line.match regexps.extended
 
         if key?
@@ -317,6 +310,15 @@ class VCardParser
                 key = key.replace(/-/g, ' ')
                 @currentContact.datapoints.push
                     name: 'about', type: key, value: value
+
+            # iOS way to store social profiles
+            else if key.indexOf('socialprofile') is 0
+                elements = key.split(';')
+                if elements.length > 2
+                    type = elements[1].split('=')[1]
+                    user = elements[2].split('=')[1]
+                    @currentContact.datapoints.push
+                        name: 'social', type: type, value: user
 
 
     # handle android-android lines of which type starts with
@@ -353,7 +355,7 @@ class VCardParser
     handleCurrentSpecialCases: ->
         dp = @currentDatapoint
 
-        # iOS cases
+        # iOS case for instant messaging accounts
         if dp?.type in IM_VENDORS
             dp.name = 'chat'
             if dp['x-service-type']?
@@ -361,6 +363,11 @@ class VCardParser
 
                 if dp['x-service-type'] not in IM_VENDORS
                     dp.type = dp['x-service-type']
+
+        # iOS case for instant messaging accounts
+        if dp.name is 'impp'
+            dp.name = 'chat'
+            dp.value = dp.value.split(':')[1]
 
 
     # Handle multi-lines Data Points (custom label)
@@ -495,12 +502,6 @@ class VCardParser
                 pname = 'pref'
                 pvalue = true
 
-            # Google, iOS use many type fields.
-            # We decide home, work, cell have priotiry over others.
-            #if pname is 'type'
-                #@addTypeProperty dp, pvalue if pvalue.length > 0
-
-            #else
             dp[pname.toLowerCase()] = pvalue
 
 
@@ -552,6 +553,13 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
     for prop in BASE_FIELDS
         value = model[prop]
         value = VCardParser.escapeText value if value
+
+        # Org is a special because it may includes the department.
+        if prop is 'org'
+            if model.department? and model.department.length > 0
+                department = VCardParser.escapeText model.department
+                value = "#{value};#{department}"
+
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
     # Name fields is already ready to export.
