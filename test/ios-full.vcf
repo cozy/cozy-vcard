@@ -81,12 +81,12 @@ item26.X-ABLabel:GaduGadu
 item27.IMPP;X-SERVICE-TYPE=Customim:x-apple:custom%20im
 item27.X-ABLabel:Skype
 X-SOCIALPROFILE;type=twitter;x-user=twitteruser:http://twitter.com/twitteruser
-X-SOCIALPROFILE;type=facebook;x-user=facebook:http://www.facebook.com/facebook
-X-SOCIALPROFILE;type=flickr;x-user=flickr:http://www.flickr.com/photos/flickr
-X-SOCIALPROFILE;type=linkedin;x-user=linkedin:http://www.linkedin.com/in/linkedin
-X-SOCIALPROFILE;type=myspace;x-user=myspace:http://www.myspace.com/myspace
-X-SOCIALPROFILE;type=sinaweibo;x-user=sina:http://weibo.com/n/sina
-X-SOCIALPROFILE;type=Customsocial;x-user=custom socialuser:x-apple:custom%20socialusers
+X-SOCIALPROFILE;type=facebook;x-user=facebookuser:http://www.facebook.com/facebookuser
+X-SOCIALPROFILE;type=flickr;x-user=flickruser:http://www.flickr.com/photos/flickruser
+X-SOCIALPROFILE;type=linkedin;x-user=linkedinuser:http://www.linkedin.com/in/linkedinuser
+X-SOCIALPROFILE;type=myspace;x-user=myspaceuser:http://www.myspace.com/myspaceuser
+X-SOCIALPROFILE;type=sinaweibo;x-user=sinauser:http://weibo.com/n/sinauser
+X-SOCIALPROFILE;type=Customsocial;x-user=custom socialuser:x-apple:custom%20socialuser
 item28.X-ABDATE;type=pref:2013-03-12
 item28.X-ABLabel:_$!<Anniversary>!$_
 item29.X-ABDATE:2012-03-12

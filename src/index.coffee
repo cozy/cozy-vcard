@@ -54,6 +54,16 @@ ANDROID_RELATIONS = [
 
 BASE_FIELDS = ['fn', 'bday', 'org', 'title', 'url', 'note', 'nickname']
 
+SOCIAL_URLS =
+    twitter: "http://twitter.com/"
+    facebook: "http://facebook.com/"
+    flickr: "http://www.flickr.com/photos/"
+    linkedin: "http://www.linkedin.com/in/"
+    myspace: "http://www.myspace.com/"
+    sina: "http://weibo.com/n/"
+
+
+
 capitalizeFirstLetter = (string) ->
     "#{string.charAt(0).toUpperCase()}#{string.toLowerCase().slice(1)}"
 
@@ -593,9 +603,7 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
             # Chat fields are traditional extended fields.
             # Exception for Anniversary field and died field;
             when 'ABOUT'
-                if type not in ['DIED', 'ANNIVERSARY']
-                    out.push "X-#{type}:#{value}"
-                else
+                if type in ['DIED', 'ANNIVERSARY']
                     itemCounter++
                     out.push "item#{itemCounter}.X-ABDATE:#{value}"
                     formattedType = capitalizeFirstLetter type
@@ -604,6 +612,13 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
                     # android specific case
                     if android
                         out.push getAndroidItem 'contact_event', type, value
+
+                # For Phonetic fields, hyphens should be added back
+                else if type.indexOf('PHONETIC') is 0
+                    out.push "X-#{type.replace(/\s/g, '-')}:#{value}"
+
+                else
+                    out.push "X-#{type}:#{value}"
 
             # All other fields are treated as extended events.
             # TODO: find something proper.
@@ -644,6 +659,16 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
             # Standard address field  with type metadata.
             when 'ADR'
                 out.push "#{key}#{formattedType}:#{value.join ';'}"
+            # Here we export social profile the same way iOS does.
+            # https://tools.ietf.org/html/draft-george-vcarddav-vcard-extension-03
+            when 'SOCIAL'
+                url = value
+                urlPrefix = SOCIAL_URLS[type.toLowerCase()]
+                if urlPrefix?
+                    url = "#{urlPrefix}#{value}"
+                res = "X-SOCIALPROFILE#{formattedType};x-user=#{value}:#{url}"
+                out.push res
+
 
             # Standard field with type metadata.
             else

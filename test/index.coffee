@@ -497,6 +497,7 @@ describe 'Full contact vcard (tricky fields)', ->
             relations[12].type.should.equal 'customrelation'
             relations[12].value.should.equal 'Custom Relation'
 
+        it.skip "alerts", ->
 
     describe 'Export', ->
 
@@ -543,6 +544,7 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = "X-SKYPE:Skype" in vcf
                 test.should.be.ok
 
+            it.skip "rev", ->
             it.skip "died", ->
             it.skip "anniversary", ->
 
@@ -561,5 +563,23 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = 'NICKNAME:Pseudo' in vcf
                 test.should.be.ok
 
-            it.skip "phonetic fields", ->
-            it.skip "social profile", ->
+            it "phonetic fields", ->
+                test = 'X-PHONETIC-FIRST-NAME:Phonetic First Name' in vcf
+                test.should.be.ok
+                test = 'X-PHONETIC-MIDDLE-NAME:Phonetic Middle Name' in vcf
+                test.should.be.ok
+                test = 'X-PHONETIC-LAST-NAME:Phonetic Last Name' in vcf
+                test.should.be.ok
+
+            it "social profile", ->
+                test = 'X-SOCIALPROFILE;TYPE=TWITTER;x-user=twitteruser:http://twitter.com/twitteruser'
+                test.should.be.ok
+
+
+            it.skip "instant messaging", ->
+            it.skip "dates", ->
+            it.skip "custom urls", ->
+            it.skip "custom relations", ->
+            it.skip "custom emails", ->
+            it.skip "rev", ->
+            it.skip "alerts", ->
