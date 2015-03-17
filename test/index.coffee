@@ -1,10 +1,13 @@
-VCardParser = require '../lib/index'
+fs = require 'fs'
+_ = require 'underscore'
 should = require('chai').Should()
 expect = require('chai').expect
-fs = require 'fs'
+
+VCardParser = require '../lib/index'
+
 
 describe 'Parsing tools unit tests', ->
-    itShouldreturnString = (func) ->
+
     describe 'unquotePrintable', ->
         it 'should always return a string', ->
             [undefined, null, '', '=54=65=73=74=C3=A9'].forEach (s) ->
@@ -39,58 +42,117 @@ describe 'Parsing tools unit tests', ->
                 .should.equal 'test,\n;'
 
 
+describe 'Contact instances tools', ->
+    describe 'nToFN', ->
+
+        it 'should always return a string', ->
+            name = ['Lastname', 'Firstname', 'MiddleName', 'Prefix', 'Suffix']
+            [undefined, null, [], name].forEach (string) ->
+                VCardParser.nToFN(string).should.be.a 'string'
+
+        it 'should join in a defined order', ->
+            nameTable = [
+                'Lastname', 'Firstname', 'MiddleName', 'Prefix', 'Suffix'
+            ]
+            expectedName = 'Prefix Firstname MiddleName Lastname Suffix'
+            VCardParser.nToFN(nameTable).should.equal expectedName
+
+    describe 'fnToN', ->
+        it 'should always return a Array[5]', ->
+            values = [undefined, null, '', 'full name']
+            values.forEach (string) ->
+                name = VCardParser.fnToN string
+                name.should.be.a 'Array'
+                name.should.have.length '5'
+
+        it 'should put value as firstname', ->
+            VCardParser.fnToN('full name').should.eql [
+                '', 'full name', '', '', ''
+            ]
+
+    describe 'adrArrayToString', ->
+        it 'should always return a string', ->
+            [
+                undefined, null, [],
+                ["", "", "4, rue Léon Jouhaux", "Paris", "", "75010", "France"]
+            ].forEach (string) ->
+                VCardParser.adrArrayToString(string).should.be.a 'string'
+        it 'should serialise on two lines', ->
+            values = [
+                "", "",
+                "4, rue Léon Jouhaux", "Paris", "", "75010", "France"]
+            VCardParser.adrArrayToString(values)
+                    .should.equal '4, rue Léon Jouhaux\nParis, 75010, France'
+
+    describe 'adrStringToArray', ->
+         it 'should always return a Array[7]', ->
+            [
+                undefined, null, '', '12, rue René Boulanger\n75010 Paris'
+            ].forEach (string) ->
+                name = VCardParser.adrStringToArray string
+                name.should.be.a 'Array'
+                name.should.have.length '7'
+
+        it 'should put string in street address field', ->
+            address = '12, rue René Boulanger\n75010 Paris'
+            VCardParser.adrStringToArray(address).should.eql [
+                '', '',
+                '12, rue René Boulanger\n75010 Paris',
+                '', '', '', ''
+            ]
+
 
 describe 'vCard Import', ->
 
-    describe 'contact 0', ->
+    describe 'Vendor VCards - simple set', ->
         parser = new VCardParser()
-        it "should parse a google vCard", ->
 
+        it "Google", ->
             parser.read fs.readFileSync 'test/google.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
             properties.forEach (property) ->
                 parser.contacts[0].should.have.property property
 
-        it "should parse a apple vCard", ->
-
+        it "Applie", ->
             parser.read fs.readFileSync 'test/apple.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note', 'bday']
             properties.forEach (property) ->
                 parser.contacts[1].should.have.property property
 
-        it "should parse an Android vCard", ->
-
+        it "Android", ->
             parser.read fs.readFileSync 'test/android.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
             properties.forEach (property) ->
                 parser.contacts[2].should.have.property property
 
-        it "should parse an Android with quoted-printable text vCard", ->
-
-            parser.read fs.readFileSync 'test/android-quotedprintable.vcf', 'utf8'
+        it "Android with quoted-printable text", ->
+            filePath = 'test/android-quotedprintable.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
             properties.forEach (property) ->
                 parser.contacts[3].should.have.property property
 
-        it "should parse a Cozycloud vCard", ->
-
+        it "Cozycloud", ->
             parser.read fs.readFileSync 'test/cozy.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'photo']
             properties.forEach (property) ->
                 parser.contacts[4].should.have.property property
                 parser.contacts[4].datapoints.length is 3
 
-        it "should toVCF and parse back", ->
+        it "Export and import", ->
             reparser = new VCardParser()
-            reparser.read VCardParser.toVCF parser.contacts[0]
-            reparser.read VCardParser.toVCF parser.contacts[1]
-            reparser.read VCardParser.toVCF parser.contacts[2]
-            reparser.read VCardParser.toVCF parser.contacts[3]
+            reparser.read VCardParser.toVCF parser.contacts[0], null, false
+            reparser.read VCardParser.toVCF parser.contacts[1], null, false
+            reparser.read VCardParser.toVCF parser.contacts[2], null, false
+            reparser.read VCardParser.toVCF parser.contacts[3], null, false
+
             cozyContact = parser.contacts[4]
-            reparser.read VCardParser.toVCF cozyContact, cozyContact.photo
+            reparser.read VCardParser.toVCF(
+                cozyContact, cozyContact.photo, false)
             reparser.contacts[4].datapoints.length.should.be.equal 3
 
-    describe 'contact A', ->
+
+    describe 'Vendor vCards - complex set', ->
         parser = new VCardParser()
 
         datapoints2Flat = (datapoints) ->
@@ -99,7 +161,7 @@ describe 'vCard Import', ->
                 flat[dp.name + '_' + dp.type] = dp.value
             return flat
 
-        shouldEqualNoSpaceNorMinus = (obtained, expected) ->
+        fuzzyEqual = (obtained, expected) ->
             expected = expected.replace /[-\s]/g, ''
             obtained = obtained.replace /[-\s]/g, ''
             obtained.should.equal expected
@@ -121,154 +183,383 @@ describe 'vCard Import', ->
             # telelphone datapoints require tolerance
             for prop in ['tel_cell', 'tel_work']
                 # client may introduce meaningless separators in phone numbers
-                shouldEqualNoSpaceNorMinus datapointsFlat[prop],
-                                           expected.datapointsFlat[prop]
-
+                fuzzyEqual(
+                    datapointsFlat[prop], expected.datapointsFlat[prop])
 
             properties = ['email_work', 'email_home']
             properties.forEach (prop) ->
                 datapointsFlat[prop].should.equal expected.datapointsFlat[prop]
 
-
+            if datapointsFlat['adr_home fr']?
+                datapointsFlat.adr_home = datapointsFlat['adr_home fr']
             datapointsFlat.adr_home.should.be.a 'array'
             adrHomeFlat = VCardParser.adrArrayToString datapointsFlat.adr_home
 
-            pass = adrHomeFlat is '12, rue René Boulanger\nParis, 75010, France' or
+            pass = \
+                adrHomeFlat is '12, rue René Boulanger\nParis, 75010, France' or
                 adrHomeFlat is '12, rue René Boulanger\n75010 Paris' or
                 adrHomeFlat is '12\, rue René Boulanger\, 75010 Paris'
             pass.should.be.true
 
-            datapointsFlat.adr_work.should.be.a 'array'
+            if datapointsFlat['adr_work fr']?
+                datapointsFlat.adr_work = datapointsFlat['adr_work fr']
             adrWorkFlat = VCardParser.adrArrayToString datapointsFlat.adr_work
-            pass = adrWorkFlat is '4, rue Léon Jouhaux\nParis, 75010, France' or
+            pass = \
+                adrWorkFlat is '4, rue Léon Jouhaux\nParis, 75010, France' or
                 adrWorkFlat is '4, rue Léon Jouhaux\n75010 Paris' or
                 adrWorkFlat is '4\, rue Léon Jouhaux\, 75010 Paris'
             pass.should.be.true
 
-
-        expected = JSON.parse fs.readFileSync 'test/fixtures/contactA/contact.json'
+        filePath = 'test/fixtures/contactA/contact.json'
+        expected = JSON.parse fs.readFileSync filePath
         expected.datapointsFlat = datapoints2Flat expected.datapoints
 
-        it "should parse a cozy vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/cozy.vcf', 'utf8'
+        it "Cozy", ->
+            filePath = 'test/fixtures/contactA/cozy.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[0], expected
             checkGroups parser.contacts[0], expected
 
-        it "should parse a google vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/google.vcf', 'utf8'
+        it "Google", ->
+            filePath = 'test/fixtures/contactA/google.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[1], expected
 
-        it "should parse a android vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/android.vcf', 'utf8'
+        it "Android", ->
+            filePath = 'test/fixtures/contactA/android.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[2], expected
 
-        it "should parse a iOS vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/ios.vcf', 'utf8'
+        it "iOS", ->
+            filePath = 'test/fixtures/contactA/ios.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[3], expected
 
-        it "should parse a thundersync (thunderbird) vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/thundersync.vcf', 'utf8'
+        it "Thundersync (thunderbird)", ->
+            filePath = 'test/fixtures/contactA/thundersync.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             obtained = parser.contacts[4]
-            for prop in ['n', 'fn']
-                obtained[prop].should.equal expected[prop]
+            obtained[prop].should.equal expected[prop] for prop in ['n', 'fn']
 
             dps = datapoints2Flat obtained.datapoints
 
-            dps['email_internet'].should.equal expected.datapointsFlat['email_home']
+            expectedEmail = expected.datapointsFlat['email_home']
+            dps['email_internet'].should.equal expectedEmail
 
-
-            shouldEqualNoSpaceNorMinus dps['tel_cell'],
-                                           expected.datapointsFlat['tel_cell']
-            shouldEqualNoSpaceNorMinus dps['tel_work'],
-                                           expected.datapointsFlat['tel_work']
+            fuzzyEqual dps['tel_cell'], expected.datapointsFlat['tel_cell']
+            fuzzyEqual dps['tel_work'], expected.datapointsFlat['tel_work']
 
             VCardParser.adrArrayToString dps.adr_home
                 .should.equal '12, rue René Boulanger\nParis, 75010, France'
             VCardParser.adrArrayToString dps.adr_work
                 .should.equal '4, rue Léon Jouhaux\nParis, 75010, France'
 
-        it "should parse a sogo (thunderbird)  vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/sogo.vcf', 'utf8'
+        it "Sogo (thunderbird)", ->
+            filePath = 'test/fixtures/contactA/sogo.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[5], expected
             checkGroups parser.contacts[5], expected
 
-        it "should parse a davdroid (Android)  vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/davdroid.vcf', 'utf8'
+        it "DAVdroid (Android)", ->
+            filePath = 'test/fixtures/contactA/davdroid.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[6], expected
             checkGroups parser.contacts[6], expected
 
-        it "should parse a iOS from a sync with cozy vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/ios_fromcozysync.vcf', 'utf8'
+        it "iOS", ->
+            filePath = 'test/fixtures/contactA/ios_fromcozysync.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[7], expected
             checkGroups parser.contacts[7], expected
 
-        it "should parse a sogo (thunderbird)  from a sync with cozy vCard", ->
-            parser.read fs.readFileSync 'test/fixtures/contactA/sogo_fromcozysync.vcf', 'utf8'
+        it "Sogo (thunderbird) from a sync with Cozy vCard", ->
+            filePath = 'test/fixtures/contactA/sogo_fromcozysync.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
             contactsEquals parser.contacts[8], expected
             checkGroups parser.contacts[8], expected
 
-
-        it "should toVCF and parse back", ->
+        it "Export then import", ->
             reparser = new VCardParser()
-            reparser.read VCardParser.toVCF parser.contacts[0]
-            reparser.read VCardParser.toVCF parser.contacts[1]
-            reparser.read VCardParser.toVCF parser.contacts[2]
-            reparser.read VCardParser.toVCF parser.contacts[3]
-            reparser.read VCardParser.toVCF parser.contacts[5]
-            reparser.read VCardParser.toVCF parser.contacts[6]
-            reparser.read VCardParser.toVCF parser.contacts[7]
-            reparser.read VCardParser.toVCF parser.contacts[8]
+            reparser.read VCardParser.toVCF parser.contacts[0], null, false
+            reparser.read VCardParser.toVCF parser.contacts[1], null, false
+            reparser.read VCardParser.toVCF parser.contacts[2], null, false
+            reparser.read VCardParser.toVCF parser.contacts[3], null, false
+            reparser.read VCardParser.toVCF parser.contacts[5], null, false
+            reparser.read VCardParser.toVCF parser.contacts[6], null, false
+            reparser.read VCardParser.toVCF parser.contacts[7], null, false
+            reparser.read VCardParser.toVCF parser.contacts[8], null, false
 
             reparser.contacts.forEach (obtained) ->
                 contactsEquals obtained, expected
 
-describe 'Contact instances tools', ->
-    describe 'nToFN', ->
-        it 'should always return a string', ->
-            [undefined, null, [],
-                ['Lastname', 'Firstname', 'MiddleName', 'Prefix', 'Suffix']].forEach (s) ->
-                VCardParser.nToFN s
-                    .should.be.a 'string'
 
-        it 'should join in a defined order', ->
-            VCardParser.nToFN ['Lastname','Firstname','MiddleName','Prefix','Suffix']
-                .should.equal 'Prefix Firstname MiddleName Lastname Suffix'
+describe 'Full contact vcard (tricky fields)', ->
 
-    describe 'fnToN', ->
-        it 'should always return a Array[5]', ->
-            [undefined, null, '', 'full name'].forEach (s) ->
-                n = VCardParser.fnToN s
-                n.should.be.a 'Array'
-                n.should.have.length '5'
+    describe 'Google Contacts vcard should retrieve', ->
+        parser = new VCardParser()
+        parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
+        contact = parser.contacts[0]
+        datapoints = contact.datapoints
 
-        it 'should put value as firstname', ->
-            VCardParser.fnToN 'full name'
-                .should.eql ['', 'full name', '', '', '']
+        it "bday", ->
+            contact.bday.should.equal '1961-04-05'
+        it "org", ->
+            contact.org.should.equal 'SuperCorp'
+        it "title", ->
+            contact.title.should.equal 'Chairman'
 
-    describe 'adrArrayToString', ->
-        it 'should always return a string', ->
-            [undefined, null, [],
-                ["", "", "4, rue Léon Jouhaux", "Paris", "", "75010", "France"]
-            ].forEach (s) ->
-                VCardParser.adrArrayToString s
-                    .should.be.a 'string'
-        it 'should serialise on two lines', ->
-            VCardParser.adrArrayToString    ["", "",
-                "4, rue Léon Jouhaux", "Paris", "", "75010", "France"]
-                    .should.equal '4, rue Léon Jouhaux\nParis, 75010, France'
-    describe 'adrStringToArray', ->
-         it 'should always return a Array[7]', ->
-            [undefined, null, '',
-                '12, rue René Boulanger\n75010 Paris'
-            ].forEach (s) ->
-                n = VCardParser.adrStringToArray s
-                n.should.be.a 'Array'
-                n.should.have.length '7'
+        it "typed url", ->
+            urls = _.filter datapoints, (point) ->
+                point.name is 'url'
+            urls.length.should.equal 5
+            urls[0].type.should.equal 'profile'
+            urls[0].value.should.equal 'http://profile.example.com/'
+            urls[2].type.should.equal 'homepage'
+            urls[2].value.should.equal 'http://home.example.com/'
+            urls[4].type.should.equal 'arbitrarystring'
+            urls[4].value.should.equal 'http://custom.example.com/'
 
-        it 'should put string in street address field', ->
-            VCardParser.adrStringToArray '12, rue René Boulanger\n75010 Paris'
-                .should.eql ['', '',
-                    '12, rue René Boulanger\n75010 Paris',
-                    '', '', '', '']
+        it "instant messaging accounts", ->
+            ims = _.filter datapoints, (point) ->
+                point.name is 'chat'
+            ims.length.should.equal 8
+            ims[0].type.should.equal 'aim'
+            ims[0].value.should.equal 'AIM'
+
+        it "tel composed of several names", ->
+            workfax = _.filter datapoints, (point) ->
+                point.type is 'work fax'
+            workfax.length.should.equal 1
+            homefax = _.filter datapoints, (point) ->
+                point.type is 'home fax'
+            homefax.length.should.equal 1
+
+        it  "relations", ->
+            relations = _.filter datapoints, (point) ->
+                point.name is 'relation'
+            relations.length.should.equal 15
+            relations[0].type.should.equal 'spouse'
+            relations[0].value.should.equal 'Spouse'
 
 
+    describe 'Android vcard should retrieve', ->
+        parser = new VCardParser()
+        parser.read fs.readFileSync 'test/android-full.vcf', 'utf8'
+        contact = parser.contacts[0]
+        datapoints = contact.datapoints
+
+        it "bday", ->
+            contact.bday.should.equal '2015-03-03'
+        it "org", ->
+            contact.org.should.equal 'SuperCorp'
+        it "title", ->
+            contact.title.should.equal 'Chairman'
+        it "url", ->
+            contact.url.should.equal 'http://cozy.io'
+        it "nickname", ->
+            contact.nickname.should.equal 'Pseudo'
+
+        it "instant messaging accounts", ->
+            ims = _.filter datapoints, (point) ->
+                point.name is 'chat'
+            ims.length.should.equal 9
+            ims[0].type.should.equal 'skype-username'
+            ims[0].value.should.equal 'skypeaccount'
+
+        it "phonetic fields", ->
+            fields = _.filter datapoints, (point) ->
+                point.name is 'about' and point.type.indexOf('phonetic') is 0
+            fields.length.should.equal 3
+            fields[0].type.should.equal 'phonetic first name'
+            fields[0].value.should.equal 'Jon'
+
+        it "tel composed of several names", ->
+            workfax = _.filter datapoints, (point) ->
+                point.type is 'work cell'
+            workfax.length.should.equal 1
+            homefax = _.filter datapoints, (point) ->
+                point.type is 'work pager'
+            homefax.length.should.equal 1
+
+        it "relations", ->
+            relations = _.filter datapoints, (point) ->
+                point.name is 'relation'
+            relations.length.should.equal 14
+            relations[0].type.should.equal 'assistant'
+            relations[0].value.should.equal 'Assistant'
+
+
+    describe 'iOS vcard should retrieve', ->
+        parser = new VCardParser()
+        parser.read fs.readFileSync 'test/ios-full.vcf', 'utf8'
+        contact = parser.contacts[0]
+        datapoints = contact.datapoints
+
+        it "bday", ->
+            contact.bday.should.equal '2015-03-03'
+        it "org", ->
+            contact.org.should.equal 'SuperCorp'
+        it "department", ->
+            contact.department.should.equal 'Department'
+        it "title", ->
+            contact.title.should.equal 'Chairman'
+        it "nickname", ->
+            contact.nickname.should.equal 'Pseudo'
+
+        it "instant messaging accounts", ->
+            ims = _.filter datapoints, (point) ->
+                point.name is 'chat'
+            ims.length.should.equal 16
+            ims[0].type.should.equal 'msn'
+            ims[0].value.should.equal 'msn'
+            ims[10].value.should.equal 'yahoo'
+            ims[10].type.should.equal 'yahoo'
+            ims[10]['x-service-type'].should.equal 'yahoo'
+            ims[15].value.should.equal 'custom%20im'
+            ims[15].type.should.equal 'customim'
+            ims[15]['x-service-type'].should.equal 'customim'
+
+        it "phonetic name", ->
+            abouts = _.filter datapoints, (point) ->
+                point.name is 'about'
+            abouts.length.should.equal 6
+            abouts[0].type.should.equal 'phonetic first name'
+            abouts[0].value.should.equal 'Phonetic First Name'
+            abouts[1].type.should.equal 'phonetic middle name'
+            abouts[1].value.should.equal 'Phonetic Middle Name'
+            abouts[2].type.should.equal 'phonetic last name'
+            abouts[2].value.should.equal 'Phonetic Last Name'
+
+        it "emails", ->
+            emails = _.filter datapoints, (point) ->
+                point.name is 'email'
+            emails.length.should.equal 6
+            emails[0].type.should.equal 'home pref'
+            emails[0].value.should.equal 'test@cozy.io'
+            emails[4].type.should.equal 'customemail'
+            emails[4].value.should.equal 'test5@cozy.io'
+
+        it "tels", ->
+            tels = _.filter datapoints, (point) ->
+                point.name is 'tel'
+            tels[0].type.should.equal 'home voice pref'
+            tels[0].value.should.equal '0102030400'
+            tels[9].type.should.equal 'customphone'
+            tels[9].value.should.equal '0102030409'
+
+        it "address custom", ->
+            addrs = _.filter datapoints, (point) ->
+                point.name is 'adr'
+            addrs.length.should.equal 4
+            addrs[3].type.should.equal 'home customaddress fr'
+            addrs[3].value[2].should.equal '55\nRue Bonsergent'
+            addrs[3].value[3].should.equal '75010'
+            addrs[3].value[4].should.equal 'Ile De France'
+            addrs[3].value[5].should.equal 'Paris'
+            addrs[3].value[6].should.equal 'France'
+
+        it "urls", ->
+            urls = _.filter datapoints, (point) ->
+                point.name is 'url'
+            urls.length.should.equal 5
+            urls[0].type.should.equal 'homepage'
+            urls[0].value.should.equal 'http://homepage.fr'
+            urls[4].type.should.equal 'custom'
+            urls[4].value.should.equal 'http://custom.fr'
+
+        it "social profile", ->
+            profiles = _.filter datapoints, (point) ->
+                point.name is 'social'
+
+            profiles.length.should.be.equal 7
+            profiles[0].type.should.equal 'twitter'
+            profiles[0].value.should.equal 'twitteruser'
+            profiles[6].type.should.equal 'customsocial'
+            profiles[6].value.should.equal 'custom socialuser'
+
+        it "anniversary", ->
+            abouts = _.filter datapoints, (point) ->
+                point.name is 'about'
+            abouts.length.should.equal 6
+            abouts[3].type.should.equal 'anniversary'
+            abouts[3].value.should.equal '2013-03-12'
+            abouts[4].type.should.equal 'other'
+            abouts[4].value.should.equal '2012-03-12'
+            abouts[5].type.should.equal 'customdate'
+            abouts[5].value.should.equal '2006-03-12'
+
+        it "relations", ->
+            relations = _.filter datapoints, (point) ->
+                point.name is 'relation'
+            relations.length.should.equal 13
+            relations[0].type.should.equal 'mother'
+            relations[0].value.should.equal 'Mother'
+            relations[12].type.should.equal 'customrelation'
+            relations[12].value.should.equal 'Custom Relation'
+
+
+    describe 'Export', ->
+
+        describe 'Google', ->
+            parser = new VCardParser()
+            parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
+            contact = parser.contacts[0]
+
+            vcf = VCardParser.toVCF(contact).split('\n')
+
+            it "org", ->
+                test = "ORG:SuperCorp" in vcf
+                test.should.be.ok
+
+            it "bday", ->
+                test = "BDAY:1961-04-05" in vcf
+                test.should.be.ok
+
+            it "title", ->
+                test = "TITLE:Chairman" in vcf
+                test.should.be.ok
+
+            it "tel composed of several names", ->
+                test = "TEL;TYPE=WORK;TYPE=FAX:+1 212 555 2345" in vcf
+                test.should.be.ok
+
+            it "relations", ->
+                test = "item17.X-ABRELATEDNAMES:Big Boss" in vcf
+                test.should.be.ok
+                test = "item17.X-ABLabel:_$!<Manager>!$_" in vcf
+                test.should.be.ok
+                test = "X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Big Boss;7;;;;;;;;;;;;;" in vcf
+                test.should.be.ok
+
+            it "url", ->
+                test = "item2.URL:http://blog.example.com/" in vcf
+                test.should.be.ok
+                test = "item2.X-ABLabel:BLOG" in vcf
+                test.should.be.ok
+
+            it "skype", ->
+                test = "X-SKYPE-USERNAME:Skype" in vcf
+                test.should.be.ok
+                test = "X-SKYPE:Skype" in vcf
+                test.should.be.ok
+
+            it.skip "died", ->
+            it.skip "anniversary", ->
+
+        describe 'iOS', ->
+            parser = new VCardParser()
+            parser.read fs.readFileSync 'test/ios-full.vcf', 'utf8'
+            contact = parser.contacts[0]
+
+            vcf = VCardParser.toVCF(contact).split('\n')
+
+            it "department", ->
+                test = 'ORG:SuperCorp;Department' in vcf
+                test.should.be.ok
+
+            it "nickname", ->
+                test = 'NICKNAME:Pseudo' in vcf
+                test.should.be.ok
+
+            it.skip "phonetic fields", ->
+            it.skip "social profile", ->

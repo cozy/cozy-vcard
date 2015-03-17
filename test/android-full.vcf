@@ -1,0 +1,65 @@
+BEGIN:VCARD
+VERSION:2.1
+N:Smith;Jhon;Middle;Dr.;Suffix
+FN:Dr. Jhon middle 2, Suffix
+X-PHONETIC-FIRST-NAME:Jon
+X-PHONETIC-MIDDLE-NAME:Middle
+X-PHONETIC-LAST-NAME:Smiss
+X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;Pseudo;1;;;;;;;;;;;;;
+BDAY:2015-03-03
+ORG:SuperCorp
+TITLE:Chairman
+URL:http://cozy.io
+NOTE:Notes
+EMAIL;HOME:mail@supercorp.com
+EMAIL;WORK:mail2@supercorp.com
+EMAIL:mail3@supercorp.cpm
+EMAIL:mail4@supercorp.com
+ADR;HOME:;;678 Plain Home Address\nAll one field 354\nBridgeport CT 06
+TEL;CELL:060-000-0001
+TEL;HOME:060-000-0002
+TEL;WORK:060-000-0003
+TEL;WORK;FAX:060-000-0004
+TEL;HOME;FAX:060-000-0005
+TEL;PAGER:06 00 00 00 06
+TEL;:060-000-0007
+TEL;:060-000-0008
+TEL;CAR:060-000-0009
+TEL;WORK;PREF:060-000-0010
+TEL;ISDN:060-000-0011
+TEL;PREF:060-000-0012
+TEL;FAX:060-000-0013
+TEL;:060-000-0014
+TEL;TLX:060-000-0015
+TEL;:060-000-0016
+TEL;WORK;CELL:060-000-0017
+TEL;WORK;PAGER:060-000-0018
+TEL;:060-000-0019
+TEL;MSG:060-000-0020
+X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2015-03-04;1;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2015-03-05;2;;;;;;;;;;;;;
+X-ANDROID-CUSTOM;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:vnd.android.cursor.item/contact_event;=32=30=31=35=2D=30=33=2D=30=36;=30;=44=61=74=65=20=50=65=72=73=6F=6E=6E=61=6C=69=73=C3=A9;;;;;;;;;;;;
+X-SKYPE-USERNAME:skypeaccount
+X-AIM:aimaccount
+X-MSN:winaccount
+X-YAHOO:yahooaccount
+X-QQ:qqaccount
+X-GOOGLE-TALK:account
+X-ICQ:account
+X-JABBER:account
+X-SIP:appel-internet
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Assistant;1;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Brother;2;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Child;3;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Domestic Partner;4;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Father;5;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Friend;6;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Manager;7;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Mother;8;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Parent;9;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Partner;10;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Referred by;11;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Relative;12;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Sister;13;;;;;;;;;;;;;
+X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Spouse;14;;;;;;;;;;;;;
+END:VCARD

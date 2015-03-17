@@ -1,0 +1,79 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Mr AAAgoogleFirst Middleone Middletwo von AAALast Jr
+N:von AAALast;AAAgoogleFirst;Middleone Middletwo;Mr;Jr
+EMAIL;TYPE=INTERNET;TYPE=HOME:homeEmail@example.com
+EMAIL;TYPE=INTERNET;TYPE=WORK:workEmail@example.com
+item1.EMAIL;TYPE=INTERNET:customEmail@example.com
+item1.X-ABLabel:Arbitrary String
+X-AIM:AIM
+X-GTALK:gTalk
+X-YAHOO:Yahoo
+X-JABBER:Jabber
+X-MSN:MSN
+X-SKYPE:Skype
+X-QQ:QQ
+X-ICQ:ICQ
+TEL;TYPE=HOME:+1 860 355 3887
+TEL;TYPE=WORK:+1 860 350 0301
+TEL;TYPE=CELL:+1 203 207 1047
+TEL;TYPE=MAIN:+1 212 555 1234
+TEL;TYPE=WORK;TYPE=FAX:+1 212 555 2345
+TEL;TYPE=HOME;TYPE=FAX:+1 212 555 3456
+item2.TEL:+1 212 555 4567
+item2.X-ABLabel:GRAND_CENTRAL
+TEL;TYPE=PAGER:+1 212 555 0000
+ADR;TYPE=HOME:;;678 Plain Home Address\nAll one field 354\nBridgeport CT 06
+834;;;;
+ADR;TYPE=WORK:POB 999;Northville;80 Maple Road;Danbury;CT;06810;USA
+item3.ADR:;;678 Elm Street\nApt 354\n;Bridgeport;CT;06834;USA
+item3.X-ABLabel:Weekends
+BDAY:1961-04-05
+ORG:SuperCorp
+TITLE:Chairman
+item4.URL:http\://profile.example.com/
+item4.X-ABLabel:PROFILE
+item5.URL:http\://blog.example.com/
+item5.X-ABLabel:BLOG
+item6.URL:http\://home.example.com/
+item6.X-ABLabel:_$!<HomePage>!$_
+URL;TYPE=WORK:http\://work.example.com/
+item7.URL:http\://custom.example.com/
+item7.X-ABLabel:arbitraryString
+item8.X-ABDATE:2014-12-31
+item8.X-ABLabel:Died
+item9.X-ABDATE:2001-01-01
+item9.X-ABLabel:_$!<Anniversary>!$_
+item10.X-ABRELATEDNAMES:Spouse
+item10.X-ABLabel:_$!<Spouse>!$_
+item11.X-ABRELATEDNAMES:Child One
+item11.X-ABLabel:_$!<Child>!$_
+item12.X-ABRELATEDNAMES:Mom
+item12.X-ABLabel:_$!<Mother>!$_
+item13.X-ABRELATEDNAMES:Dad
+item13.X-ABLabel:_$!<Father>!$_
+item14.X-ABRELATEDNAMES:Step-parent
+item14.X-ABLabel:_$!<Parent>!$_
+item15.X-ABRELATEDNAMES:Big Bro
+item15.X-ABLabel:_$!<Brother>!$_
+item16.X-ABRELATEDNAMES:Lil Sis
+item16.X-ABLabel:_$!<Sister>!$_
+item17.X-ABRELATEDNAMES:Good Friend
+item17.X-ABLabel:_$!<Friend>!$_
+item18.X-ABRELATEDNAMES:Some Relative
+item18.X-ABLabel:RELATIVE
+item19.X-ABRELATEDNAMES:Big Boss
+item19.X-ABLabel:_$!<Manager>!$_
+item20.X-ABRELATEDNAMES:Personal Assistant
+item20.X-ABLabel:_$!<Assistant>!$_
+item21.X-ABRELATEDNAMES:Referred By
+item21.X-ABLabel:REFERRED_BY
+item22.X-ABRELATEDNAMES:Partner
+item22.X-ABLabel:_$!<Partner>!$_
+item23.X-ABRELATEDNAMES:Domestic Partner
+item23.X-ABLabel:DOMESTIC_PARTNER
+item24.X-ABRELATEDNAMES:Custom
+item24.X-ABLabel:Arbitrary-string
+NOTE:Blah\, blah\n\nblah blah blah.\n\nblahblah\nCustom: Custom field data
+\nArbitrary_String: Another custom field
+END:VCARD
