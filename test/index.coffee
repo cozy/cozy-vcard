@@ -497,7 +497,12 @@ describe 'Full contact vcard (tricky fields)', ->
             relations[12].type.should.equal 'customrelation'
             relations[12].value.should.equal 'Custom Relation'
 
-        it.skip "alerts", ->
+        it "alerts", ->
+            alerts = _.filter datapoints, (point) ->
+                point.name is 'alerts'
+            alerts.length.should.equal 2
+            alerts[0].type.should.equal 'call'
+            alerts[0].value.should.equal 'snd=system:Bulletin\\,vib=Alert'
 
     describe 'Export', ->
 
@@ -575,11 +580,15 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = 'X-SOCIALPROFILE;TYPE=TWITTER;x-user=twitteruser:http://twitter.com/twitteruser'
                 test.should.be.ok
 
-
             it.skip "instant messaging", ->
             it.skip "dates", ->
             it.skip "custom urls", ->
             it.skip "custom relations", ->
             it.skip "custom emails", ->
             it.skip "rev", ->
-            it.skip "alerts", ->
+
+            it "alerts", ->
+                test = 'X-ACTIVITY-ALERT:type=call\\,snd=system:Bulletin\\,vib=Alert' in vcf
+                test.should.be.ok
+                test = 'X-ACTIVITY-ALERT:type=text\\,snd=<none>'
+                test.should.be.ok

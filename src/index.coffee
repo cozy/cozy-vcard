@@ -330,6 +330,18 @@ class VCardParser
                     @currentContact.datapoints.push
                         name: 'social', type: type, value: user
 
+            # Storea activity alert information. Do not try to format them.
+            # It's essentially useful to not lose that data during sync
+            # with iOS devices.
+            else if key is 'activity-alert'
+                vals = value.split ','
+                if vals.length > 1
+                    type = vals.splice(0, 1)[0]
+                    type = type.split('=')[1].replace /\\/g, ''
+                    value = vals.join ','
+                @currentContact.datapoints.push
+                    name: 'alerts', type: type, value: value
+
 
     # handle android-android lines of which type starts with
     # vnd.android.cursor.item/
@@ -659,6 +671,7 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
             # Standard address field  with type metadata.
             when 'ADR'
                 out.push "#{key}#{formattedType}:#{value.join ';'}"
+
             # Here we export social profile the same way iOS does.
             # https://tools.ietf.org/html/draft-george-vcarddav-vcard-extension-03
             when 'SOCIAL'
@@ -667,6 +680,14 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
                 if urlPrefix?
                     url = "#{urlPrefix}#{value}"
                 res = "X-SOCIALPROFILE#{formattedType};x-user=#{value}:#{url}"
+                out.push res
+
+            # Export alerts in the weird iOS format. Clean \\\ that can become
+            # too numerous.
+            when 'ALERTS'
+                type = type.toLowerCase()
+                value = value.replace /\\\\\\/g, "\\"
+                res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
                 out.push res
 
 

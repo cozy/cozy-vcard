@@ -119,5 +119,7 @@ item42.X-ABRELATEDNAMES:Other
 item42.X-ABLabel:_$!<Other>!$_
 item43.X-ABRELATEDNAMES:Custom Relation
 item43.X-ABLabel:Customrelation
+X-ACTIVITY-ALERT:type=call\,snd=system:Bulletin\,vib=Alert
+X-ACTIVITY-ALERT:type=text\,snd=<none>
 X-ALTBDAY;CALSCALE=chinese:007800301201
 END:VCARD
