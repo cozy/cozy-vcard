@@ -594,6 +594,12 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
                     .join ','
         out.push "CATEGORIES:#{value}"
 
+    if model.rev?
+        if typeof(model.rev) is Date
+            out.push "REV:#{model.rev.toISOString()}"
+        else
+            out.push "REV:#{model.rev}"
+
     # Handle datapoints and special cases.
     for i, dp of model.datapoints
         key = dp.name.toUpperCase()

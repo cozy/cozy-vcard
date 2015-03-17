@@ -510,6 +510,8 @@ describe 'Full contact vcard (tricky fields)', ->
             parser = new VCardParser()
             parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
             contact = parser.contacts[0]
+            date = new Date().toISOString()
+            contact.rev = date
 
             vcf = VCardParser.toVCF(contact).split('\n')
 
@@ -549,7 +551,10 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = "X-SKYPE:Skype" in vcf
                 test.should.be.ok
 
-            it.skip "rev", ->
+            it "rev", ->
+                test = "REV:#{date}" in vcf
+                test.should.be.ok
+
             it.skip "died", ->
             it.skip "anniversary", ->
 
@@ -557,6 +562,8 @@ describe 'Full contact vcard (tricky fields)', ->
             parser = new VCardParser()
             parser.read fs.readFileSync 'test/ios-full.vcf', 'utf8'
             contact = parser.contacts[0]
+            date = new Date().toISOString()
+            contact.rev = date
 
             vcf = VCardParser.toVCF(contact).split('\n')
 
@@ -585,7 +592,10 @@ describe 'Full contact vcard (tricky fields)', ->
             it.skip "custom urls", ->
             it.skip "custom relations", ->
             it.skip "custom emails", ->
-            it.skip "rev", ->
+
+            it "rev", ->
+                test = "REV:#{date}" in vcf
+                test.should.be.ok
 
             it "alerts", ->
                 test = 'X-ACTIVITY-ALERT:type=call\\,snd=system:Bulletin\\,vib=Alert' in vcf
