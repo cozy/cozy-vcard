@@ -614,12 +614,70 @@ VCardParser.toVCF = (model, picture = null, mode = 'google') ->
     out = ["BEGIN:VCARD"] # Out will contain all the vcard lines.
     out.push "VERSION:3.0" # Version of the created vCard.
 
-    # Generates unique id.
+    exportUid out, model
+    exportRev out, model if model.rev?
+    exportName out, model if model.n?
+    exportBaseFields out, model
+    exportTags out, model if model.tags? and model.tags.length > 0
+
+    # Handle datapoints and special cases.
+    for i, datapoint of model.datapoints
+        key = datapoint.name.toUpperCase()
+        type = datapoint.type?.toUpperCase() or null
+        value = datapoint.value
+
+        if Array.isArray value
+            value = value.map VCardParser.escapeText
+        else
+            value = VCardParser.escapeText value
+
+        formattedType = ""
+        if type?
+            types = type.split ' '
+            formattedType += ";TYPE=#{currentType}" for currentType in types
+
+        options = {
+            out, type, formattedType, value, mode, itemCounter, key
+        }
+        switch key
+
+            when 'ABOUT'
+                itemCounter = exportAbout options
+            when 'OTHER'
+                itemCounter = exportOther options
+            when 'CHAT'
+                itemCounter = exportChat options
+            when 'URL'
+                itemCounter = exportUrl options
+            when 'RELATION'
+                itemCounter = exportRelation options
+            when 'ADR'
+                itemCounter = exportAdr options
+            when 'SOCIAL'
+                itemCounter = exportSocial options
+            when 'ALERTS'
+                itemCounter = exportAlerts options
+            else
+                itemCounter = exportDefault options
+
+    # Handle picture field.
+    # TODO: handle URI pictures
+    exportPicture out, picture if picture?
+
+    # Close the vcard and build the result string.
+    out.push "END:VCARD"
+    return out.join("\n") + "\n"
+
+
+# Generates unique id.
+exportUid = (out, model) ->
     uri = model.carddavuri
     uid = uri?.substring(0, uri.length - 4) or model.id
     out.push "UID:#{uid}" if uid?
 
-    # Base fields, simple with no extra attributes.
+
+# Base fields, simple with no extra attributes.
+exportBaseFields = (out, model) ->
     for prop in BASE_FIELDS
         value = model[prop]
         value = VCardParser.escapeText value if value
@@ -632,168 +690,202 @@ VCardParser.toVCF = (model, picture = null, mode = 'google') ->
 
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
-    # Name fields is already ready to export.
-    if model.n?
-        out.push "N:#{model.n}"
 
-    # Handles tags/categories/groups
-    if model.tags? and model.tags.length > 0
-        value = model.tags.map VCardParser.escapeText
-                    .join ','
-        out.push "CATEGORIES:#{value}"
+# Name fields is already ready to export.
+exportName = (out, model) ->
+    out.push "N:#{model.n}"
 
-    if model.rev?
-        if typeof(model.rev) is Date
-            out.push "REV:#{model.rev.toISOString()}"
+
+# Date of last change at ISO format.
+exportRev = (out, model) ->
+    if typeof(model.rev) is Date
+        out.push "REV:#{model.rev.toISOString()}"
+    else
+        out.push "REV:#{model.rev}"
+
+
+# Handles tags/categories/groups.
+exportTags = (out, model) ->
+    value = model.tags.map(VCardParser.escapeText).join ','
+    out.push "CATEGORIES:#{value}"
+
+
+# About contains mainly phonetic fields and date fields.
+# Android requires weird format.
+# It the type of the field is not known.
+exportAbout = (options) ->
+    {out, type, formattedType, value, mode, itemCounter} = options
+
+    # Android handles it in a specific manner.
+    if type in ['DIED', 'ANNIVERSARY']
+
+        if mode is 'android'
+            out.push getAndroidItem 'contact_event', type, value
+
         else
-            out.push "REV:#{model.rev}"
+            itemCounter++
+            out.push "item#{itemCounter}.X-ABDATE:#{value}"
+            formattedType = capitalizeFirstLetter type
+            out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
 
-    # Handle datapoints and special cases.
-    for i, dp of model.datapoints
-        key = dp.name.toUpperCase()
-        type = dp.type?.toUpperCase() or null
-        value = dp.value
+    # For Phonetic fields, hyphens should be added back
+    else if type.indexOf('PHONETIC') is 0
+        out.push "X-#{type.replace(/\s/g, '-')}:#{value}"
 
-        if Array.isArray value
-            value = value.map VCardParser.escapeText
-        else
-            value = VCardParser.escapeText value
+    # Check if it's a date. In that case an ABDATE field should be created.
+    else if isValidDate value
+        itemCounter++
+        out.push "item#{itemCounter}.X-ABDATE:#{value}"
+        formattedType = capitalizeFirstLetter type
+        out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
 
-        formattedType = ""
-        if type?
-            types = type.split ' '
-            formattedType += ";TYPE=#{currentType}" for currentType in types
+    # Create an extended field for this type.
+    else
+        out.push "X-#{type}:#{value}"
 
-        switch key
-
-            # Chat fields are traditional extended fields.
-            # Exception for Anniversary field and died field;
-            when 'ABOUT'
-                if type in ['DIED', 'ANNIVERSARY']
-
-                    if mode is 'android'
-                        out.push getAndroidItem 'contact_event', type, value
-
-                    else
-                        itemCounter++
-                        out.push "item#{itemCounter}.X-ABDATE:#{value}"
-                        formattedType = capitalizeFirstLetter type
-                        out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
+    return itemCounter
 
 
-                # For Phonetic fields, hyphens should be added back
-                else if type.indexOf('PHONETIC') is 0
-                    out.push "X-#{type.replace(/\s/g, '-')}:#{value}"
+# All other fields are treated as extended events.
+# TODO: find something proper.
+exportOther = (options) ->
+    {out, type, formattedType, value, mode, itemCounter} = options
+    out.push "X-EVENT#{formattedType}:#{value}"
 
-                else if isValidDate value
-                    itemCounter++
-                    out.push "item#{itemCounter}.X-ABDATE:#{value}"
-                    formattedType = capitalizeFirstLetter type
-                    out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
+    return itemCounter
 
-                else
-                    out.push "X-#{type}:#{value}"
 
-            # All other fields are treated as extended events.
-            # TODO: find something proper.
-            when 'OTHER'
-                out.push "X-EVENT#{formattedType}:#{value}"
+# Chat fields are traditional extended fields.
+# iOS requires a weird format with predefined string depending on the im
+# vendor.
+exportChat = (options) ->
+    {out, type, formattedType, value, mode, itemCounter} = options
 
-            # Chat fields are traditional extended fields.
-            when 'CHAT'
+    # Android don't know skype, it only knows skype-username.
+    if type is 'SKYPE' and mode is 'android'
+        out.push "X-SKYPE-USERNAME:#{value}"
 
-                # Android don't know skype, it only knows skype-username.
-                if type is 'SKYPE' and mode is 'android'
-                    out.push "X-#{'SKYPE-USERNAME'}:#{value}"
-                else
-                    if mode is 'ios'
-                        itemCounter++
+    else
 
-                        serviceType = IOS_SERVICE_TYPES[type.toLowerCase()]
-                        if serviceType?
-                            out.push "item#{itemCounter}.IMPP;X-SERVICE-TYPE=#{serviceType}:#{value}"
-                        else
-                            type = capitalizeFirstLetter type.toLowerCase()
-                            out.push "item#{itemCounter}.IMPP;X-SERVICE-TYPE=#{type}:x-apple:#{value}"
-                    else
-                        out.push "X-#{type}:#{value}"
+        if mode is 'ios'
+            itemCounter++
 
-            # URL generates item line. It handles specific case for
-            # PROFILE and BLOG types.
-            when 'URL'
-                itemCounter++
-                out.push "item#{itemCounter}.URL:#{value}"
+            serviceType = IOS_SERVICE_TYPES[type.toLowerCase()]
+            if serviceType?
+                line = "item#{itemCounter}.IMPP;"
+                line += "X-SERVICE-TYPE=#{serviceType}:#{value}"
+                out.push line
 
-                if type not in ['PROFILE', 'BLOG']
-                    formattedType = capitalizeFirstLetter type.toLowerCase()
-                    if (mode is 'ios') and type in ['HOME', 'WORK', 'OTHER']
-                        out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
-                    else if mode is 'ios'
-                        out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
-                    else
-                        out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
-
-                else
-                    out.push "item#{itemCounter}.X-ABLabel:#{type}"
-
-            # Relations generates item line.
-            when 'RELATION'
-
-                if mode is 'android'
-                    line = getAndroidItem 'relation', type, value
-                    out.push line if line
-
-                else
-                    itemCounter++
-                    out.push "item#{itemCounter}.X-ABRELATEDNAMES:#{value}"
-                    formattedType = capitalizeFirstLetter type.toLowerCase()
-                    out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
-
-            # Standard address field  with type metadata.
-            when 'ADR'
-                out.push "#{key}#{formattedType}:#{value.join ';'}"
-
-            # Here we export social profile the same way iOS does.
-            # https://tools.ietf.org/html/draft-george-vcarddav-vcard-extension-03
-            when 'SOCIAL'
-                url = value
-                urlPrefix = SOCIAL_URLS[type.toLowerCase()]
-                if urlPrefix?
-                    url = "#{urlPrefix}#{value}"
-                else
-                    formattedType = capitalizeFirstLetter type.toLowerCase()
-                    formattedType = ";TYPE=#{formattedType}"
-
-                res = "X-SOCIALPROFILE#{formattedType};x-user=#{value}:#{url}"
-                out.push res
-
-            # Export alerts in the weird iOS format. Clean \\\ that can become
-            # too numerous.
-            when 'ALERTS'
-
-                if mode is 'ios'
-                    type = type.toLowerCase()
-                    value = value.replace /\\\\\\/g, "\\"
-                    res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
-                    out.push res
-
-            # It's a date we name this field as a date
             else
-                out.push "#{key}#{formattedType}:#{value}"
+                type = capitalizeFirstLetter type.toLowerCase()
+                line = "item#{itemCounter}.IMPP;"
+                line += "X-SERVICE-TYPE=#{type}:x-apple:#{value}"
+                out.push line
 
-    # Handle picture field.
-    # TODO: handle URI pictures
-    if picture?
-        # vCard 3.0 specifies that lines must be folded at 75 characters
-        # with "\n " as a delimiter
-        folded = picture.match(/.{1,75}/g).join '\n '
-        pictureString = "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}"
-        out.push pictureString
+        else
+            out.push "X-#{type}:#{value}"
+
+    return itemCounter
 
 
-    # Close the vcard and build the result string.
-    out.push "END:VCARD"
-    return out.join("\n") + "\n"
+# URL generates item line. It handles specific case for
+# PROFILE and BLOG types.
+exportUrl = (options) ->
+    {out, type, formattedType, value, mode, itemCounter} = options
+
+    itemCounter++
+    out.push "item#{itemCounter}.URL:#{value}"
+
+    if type not in ['PROFILE', 'BLOG']
+        formattedType = capitalizeFirstLetter type.toLowerCase()
+        if (mode is 'ios') and type in ['HOME', 'WORK', 'OTHER']
+            out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+        else if mode is 'ios'
+            out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
+        else
+            out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+
+    else
+        out.push "item#{itemCounter}.X-ABLabel:#{type}"
+
+    return itemCounter
+
+
+# Relations generates item line.
+# Android required a weird format.
+exportRelation = (options) ->
+    {out, type, formattedType, value, mode, itemCounter} = options
+
+    if mode is 'android'
+        line = getAndroidItem 'relation', type, value
+        out.push line if line
+
+    else
+        itemCounter++
+        out.push "item#{itemCounter}.X-ABRELATEDNAMES:#{value}"
+        formattedType = capitalizeFirstLetter type.toLowerCase()
+        out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+
+    return itemCounter
+
+
+# Standard address field  with type metadata.
+exportAdr = (options) ->
+    {out, type, formattedType, value, mode, itemCounter, key} = options
+
+    out.push "#{key}#{formattedType}:#{value.join ';'}"
+
+    return itemCounter
+
+
+# Here we export social profile the same way iOS does.
+# https://tools.ietf.org/html/draft-george-vcarddav-vcard-extension-03
+exportSocial = (options) ->
+    {out, type, formattedType, value, mode, itemCounter, key} = options
+
+    url = value
+    urlPrefix = SOCIAL_URLS[type.toLowerCase()]
+    if urlPrefix?
+        url = "#{urlPrefix}#{value}"
+    else
+        formattedType = capitalizeFirstLetter type.toLowerCase()
+        formattedType = ";TYPE=#{formattedType}"
+
+    res = "X-SOCIALPROFILE#{formattedType};x-user=#{value}:#{url}"
+    out.push res
+
+    return itemCounter
+
+
+# Export alerts in the weird iOS format. Clean \\\ that can become
+# too numerous.
+exportAlerts = (options) ->
+    {out, type, formattedType, value, mode, itemCounter, key} = options
+
+    if mode is 'ios'
+        type = type.toLowerCase()
+        value = value.replace /\\\\\\/g, "\\"
+        res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
+        out.push res
+
+    return itemCounter
+
+
+# We don't know this kind of field, just add it as a complex field.
+exportDefault = (options) ->
+    {out, type, formattedType, value, mode, itemCounter, key} = options
+
+    out.push "#{key}#{formattedType}:#{value}"
+
+    return itemCounter
+
+
+# vCard 3.0 specifies that lines must be folded at 75 characters
+# with "\n " as a delimiter
+exportPicture = (out, picture) ->
+    folded = picture.match(/.{1,75}/g).join '\n '
+    pictureString = "PHOTO;ENCODING=B;TYPE=JPEG;VALUE=BINARY:\n #{folded}"
+    out.push pictureString
 
 
 ##
