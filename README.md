@@ -36,6 +36,31 @@ This vCard importer doesn't try to follow the official RFC. It is just made to
 handle properly vCards from major vendors: Google, Android, iOS, OSX and
 thunderbird.
 
+The vCard exporter follow the Google way to write vcards.
+
+
+## TODO
+
+If you want to contribute, here is a non-exhaustive list of things to do to
+make this project perfect!
+
+Export: 
+
+* manage properly the `pref` attribute.
+* manage properly custom types (currently they are often exported in an
+  uppercase format).
+
+Tests: 
+
+* Make full tests field values totally agnostic. 
+* Test all fields of full vCards during import and export.
+
+Handle other vendors:
+
+* Thunderbird plugins
+* Outlook
+* FullContact
+
 
 ## What is Cozy?
 
@@ -47,6 +72,7 @@ easily, providing you
 with a new experience. You can install Cozy on your own hardware where no one
 profiles you. You install only the applications you want. You can build your
 own one too.
+
 
 ## Community 
 
