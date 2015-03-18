@@ -19,9 +19,8 @@ describe 'Parsing tools unit tests', ->
 
     describe 'escapeText', ->
         it 'should know how to be forgotten', ->
-            [undefined, null, '', 'test'].forEach (s) ->
-                expect VCardParser.escapeText s
-                    .to.equal s
+            [undefined, null, '', 'test'].forEach (value) ->
+                expect(VCardParser.escapeText(value)).to.equal value
 
         it 'should escape \\n , et ;', ->
             VCardParser.escapeText 'test,\n;'
@@ -29,13 +28,11 @@ describe 'Parsing tools unit tests', ->
 
     describe 'unescapeText', ->
         it 'should know how to be forgotten', ->
-            [undefined, null, '', 'test'].forEach (s) ->
-                expect VCardParser.unescapeText s
-                    .to.equal s
+            [undefined, null, '', 'test'].forEach (value) ->
+                expect(VCardParser.unescapeText(value)).to.equal value
 
-        it 'should unescapeText \,\n\\;', ->
-            VCardParser.unescapeText 'test\\,\\n\\;'
-                .should.equal 'test,\n;'
+        it 'should unescapeText ,\\n\\;', ->
+            VCardParser.unescapeText('test\\,\\n\\;').should.equal 'test,\n;'
 
         it 'should compose to identity with escapeText', ->
             VCardParser.unescapeText VCardParser.escapeText 'test,\n;'
@@ -513,7 +510,7 @@ describe 'Full contact vcard (tricky fields)', ->
             date = new Date().toISOString()
             contact.rev = date
 
-            vcf = VCardParser.toVCF(contact).split('\n')
+            vcf = VCardParser.toVCF(contact, null, 'google').split('\n')
 
             it "org", ->
                 test = "ORG:SuperCorp" in vcf
@@ -536,7 +533,7 @@ describe 'Full contact vcard (tricky fields)', ->
                 test.should.be.ok
                 test = "item17.X-ABLabel:_$!<Manager>!$_" in vcf
                 test.should.be.ok
-                test = "X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Big Boss;7;;;;;;;;;;;;;" in vcf
+                test = "X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Big Boss;7;;;;;;;;;;;;;" not in vcf
                 test.should.be.ok
 
             it "url", ->
@@ -546,7 +543,7 @@ describe 'Full contact vcard (tricky fields)', ->
                 test.should.be.ok
 
             it "skype", ->
-                test = "X-SKYPE-USERNAME:Skype" in vcf
+                test = "X-SKYPE-USERNAME:Skype" not in vcf
                 test.should.be.ok
                 test = "X-SKYPE:Skype" in vcf
                 test.should.be.ok
@@ -555,8 +552,63 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = "REV:#{date}" in vcf
                 test.should.be.ok
 
-            it.skip "died", ->
-            it.skip "anniversary", ->
+            it "died", ->
+                test = "item6.X-ABDATE:2014-12-31" in vcf
+                test.should.be.ok
+                test = "item6.X-ABLabel:Died" in vcf
+                test.should.be.ok
+                test = 'X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2014-12-31;2;;;;;;;;;;;;;' not in vcf
+                test.should.be.ok
+
+            it "anniversary", ->
+                test = "item7.X-ABDATE:2001-01-01" in vcf
+                test.should.be.ok
+                test = "item7.X-ABLabel:Anniversary" in vcf
+                test.should.be.ok
+                test = 'X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2001-01-01;1;;;;;;;;;;;;;' not in vcf
+                test.should.be.ok
+
+
+        describe 'Android', ->
+            parser = new VCardParser()
+            parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
+            contact = parser.contacts[0]
+            date = new Date().toISOString()
+            contact.rev = date
+
+            vcf = VCardParser.toVCF(contact, null, 'android').split('\n')
+
+            it "skype", ->
+                test = "X-SKYPE-USERNAME:Skype" in vcf
+                test.should.be.ok
+                test = "X-SKYPE:Skype" not in vcf
+                test.should.be.ok
+
+            it "died", ->
+                test = "item6.X-ABDATE:2014-12-31" not in vcf
+                test.should.be.ok
+                test = "item6.X-ABLabel:Died" not in vcf
+                test.should.be.ok
+                test = 'X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2014-12-31;2;;;;;;;;;;;;;' in vcf
+                test.should.be.ok
+
+            it "anniversary", ->
+                test = "item7.X-ABDATE:2001-01-01" not in vcf
+                test.should.be.ok
+                test = "item7.X-ABLabel:Anniversary" not in vcf
+                test.should.be.ok
+                test = 'X-ANDROID-CUSTOM:vnd.android.cursor.item/contact_event;2001-01-01;1;;;;;;;;;;;;;' in vcf
+                test.should.be.ok
+
+            it "relations", ->
+                test = "item17.X-ABRELATEDNAMES:Big Boss" not in vcf
+                test.should.be.ok
+                test = "item17.X-ABLabel:_$!<Manager>!$_" not in vcf
+                test.should.be.ok
+                test = "X-ANDROID-CUSTOM:vnd.android.cursor.item/relation;Big Boss;7;;;;;;;;;;;;;" in vcf
+                test.should.be.ok
+
+
 
         describe 'iOS', ->
             parser = new VCardParser()
@@ -565,7 +617,7 @@ describe 'Full contact vcard (tricky fields)', ->
             date = new Date().toISOString()
             contact.rev = date
 
-            vcf = VCardParser.toVCF(contact).split('\n')
+            vcf = VCardParser.toVCF(contact, null, 'ios').split('\n')
 
             it "department", ->
                 test = 'ORG:SuperCorp;Department' in vcf
@@ -587,11 +639,33 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = 'X-SOCIALPROFILE;TYPE=TWITTER;x-user=twitteruser:http://twitter.com/twitteruser'
                 test.should.be.ok
 
-            it.skip "instant messaging", ->
-            it.skip "dates", ->
-            it.skip "custom urls", ->
-            it.skip "custom relations", ->
-            it.skip "custom emails", ->
+            it "instant messaging", ->
+                test = 'item6.IMPP;X-SERVICE-TYPE=MSN:msnim:msn' in vcf
+                test.should.be.ok
+
+            it "dates", ->
+                test = 'item22.X-ABDATE:2013-03-12' in vcf
+                test.should.be.ok
+                test = 'item22.X-ABLabel:Anniversary' in vcf
+                test.should.be.ok
+                test = 'item23.X-ABDATE:2012-03-12' in vcf
+                test.should.be.ok
+                test = 'item23.X-ABLabel:Other' in vcf
+                test.should.be.ok
+
+            it "notes", ->
+
+            it "custom social", ->
+                test = 'X-SOCIALPROFILE;TYPE=Customsocial;x-user=custom socialuser:custom socialuser' in vcf
+                test.should.be.ok
+
+            it "custom urls", ->
+                test = 'item5.URL:http://custom.fr' in vcf
+                test = 'item5.X-ABLabel:Custom' in vcf
+
+            it "custom relations", ->
+                test = 'item37.X-ABRELATEDNAMES:Custom Relation' in vcf
+                test = 'item37.X-ABLabel:_$!<Customrelation>!$_' in vcf
 
             it "rev", ->
                 test = "REV:#{date}" in vcf

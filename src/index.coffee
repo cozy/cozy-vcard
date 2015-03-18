@@ -37,6 +37,10 @@ IM_VENDORS = [
     'skype', 'skype-username', 'aim', 'msn', 'yahoo', 'qq',
     'google-talk', 'gtalk', 'icq', 'jabber', 'sip', 'gad'
 ]
+
+IOS_IM_VENDORS = [
+    'aim', 'jabber', 'msn', 'yahoo', 'icq'
+]
 #item26.IMPP;X-SERVICE-TYPE=GaduGadu:x-apple:gad
 
 
@@ -62,10 +66,54 @@ SOCIAL_URLS =
     myspace: "http://www.myspace.com/"
     sina: "http://weibo.com/n/"
 
+IOS_SERVICE_TYPES =
+    'msn': 'MSN:msnim'
+    'skype': 'Skype:skype'
+    'google-talk': 'GoogleTalk:xmpp'
+    'googletalk': 'GoogleTalk:xmpp'
+    'gtalk': 'GoogleTalk:xmpp'
+    'facebook': 'Facebook:xmpp'
+    'aim': 'AIM:aim'
+    'yahoo': 'Yahoo:aim'
+    'icq': 'ICQ:aim'
+    'jabber': 'Jabber:xmpp'
+    'qq': 'QQ:x-apple'
+    'gadugadu': 'GaduGadu:x-apple'
+
+IOS_SERVICE_LABELS =
+    'msn': 'MSN'
+    'skype': 'Skype'
+    'google-talk': 'GoogleTalk'
+    'googletalk': 'GoogleTalk'
+    'gtalk': 'GoogleTalk'
+    'facebook': 'Facebook'
+    'aim': 'AIM'
+    'yahoo': 'Yahoo:'
+    'icq': 'ICQ'
+    'jabber': 'Jabber'
+    'qq': 'QQ'
+    'gadugadu': 'GaduGadu'
+
+
+isValidDate = (date) ->
+    matches = /^(\d{4})[-\/](\d{2})[-\/](\d{2})$/.exec date
+    if matches is null
+        false
+    else
+        y = parseInt matches[1]
+        m = parseInt matches[2] - 1
+        d = parseInt matches[3]
+        date = new Date y, m, d
+
+        res = date.getDate() is d
+        res = res and date.getMonth() is m
+        res = res and date.getFullYear() is y
+        res
 
 
 capitalizeFirstLetter = (string) ->
     "#{string.charAt(0).toUpperCase()}#{string.toLowerCase().slice(1)}"
+
 
 getAndroidItem = (type, key, value) ->
 
@@ -560,7 +608,7 @@ VCardParser.unescapeText = (t) ->
 # Export contact model to a VCF card. We try here to follow the Google Contacts
 # convention. Despite, there is no clear way about how to properly build
 # vCards.
-VCardParser.toVCF = (model, picture = null, android = true) ->
+VCardParser.toVCF = (model, picture = null, mode = 'google') ->
 
     itemCounter = 0 # Required to add number to non standard items.
     out = ["BEGIN:VCARD"] # Out will contain all the vcard lines.
@@ -569,7 +617,7 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
     # Generates unique id.
     uri = model.carddavuri
     uid = uri?.substring(0, uri.length - 4) or model.id
-    out.push "UID:#{uid}"
+    out.push "UID:#{uid}" if uid?
 
     # Base fields, simple with no extra attributes.
     for prop in BASE_FIELDS
@@ -622,18 +670,26 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
             # Exception for Anniversary field and died field;
             when 'ABOUT'
                 if type in ['DIED', 'ANNIVERSARY']
-                    itemCounter++
-                    out.push "item#{itemCounter}.X-ABDATE:#{value}"
-                    formattedType = capitalizeFirstLetter type
-                    out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
 
-                    # android specific case
-                    if android
+                    if mode is 'android'
                         out.push getAndroidItem 'contact_event', type, value
+
+                    else
+                        itemCounter++
+                        out.push "item#{itemCounter}.X-ABDATE:#{value}"
+                        formattedType = capitalizeFirstLetter type
+                        out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
+
 
                 # For Phonetic fields, hyphens should be added back
                 else if type.indexOf('PHONETIC') is 0
                     out.push "X-#{type.replace(/\s/g, '-')}:#{value}"
+
+                else if isValidDate value
+                    itemCounter++
+                    out.push "item#{itemCounter}.X-ABDATE:#{value}"
+                    formattedType = capitalizeFirstLetter type
+                    out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
 
                 else
                     out.push "X-#{type}:#{value}"
@@ -647,32 +703,51 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
             when 'CHAT'
 
                 # Android don't know skype, it only knows skype-username.
-                if type is 'SKYPE'
+                if type is 'SKYPE' and mode is 'android'
                     out.push "X-#{'SKYPE-USERNAME'}:#{value}"
+                else
+                    if mode is 'ios'
+                        itemCounter++
 
-                out.push "X-#{type}:#{value}"
+                        serviceType = IOS_SERVICE_TYPES[type.toLowerCase()]
+                        if serviceType?
+                            out.push "item#{itemCounter}.IMPP;X-SERVICE-TYPE=#{serviceType}:#{value}"
+                        else
+                            type = capitalizeFirstLetter type.toLowerCase()
+                            out.push "item#{itemCounter}.IMPP;X-SERVICE-TYPE=#{type}:x-apple:#{value}"
+                    else
+                        out.push "X-#{type}:#{value}"
 
-            # URL generates item line. It handles specific cas for
+            # URL generates item line. It handles specific case for
             # PROFILE and BLOG types.
             when 'URL'
                 itemCounter++
                 out.push "item#{itemCounter}.URL:#{value}"
+
                 if type not in ['PROFILE', 'BLOG']
-                    formattedType = capitalizeFirstLetter type
-                    out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+                    formattedType = capitalizeFirstLetter type.toLowerCase()
+                    if (mode is 'ios') and type in ['HOME', 'WORK', 'OTHER']
+                        out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+                    else if mode is 'ios'
+                        out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
+                    else
+                        out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+
                 else
                     out.push "item#{itemCounter}.X-ABLabel:#{type}"
 
             # Relations generates item line.
             when 'RELATION'
-                itemCounter++
-                out.push "item#{itemCounter}.X-ABRELATEDNAMES:#{value}"
-                formattedType = capitalizeFirstLetter type
-                out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
 
-                if android
+                if mode is 'android'
                     line = getAndroidItem 'relation', type, value
                     out.push line if line
+
+                else
+                    itemCounter++
+                    out.push "item#{itemCounter}.X-ABRELATEDNAMES:#{value}"
+                    formattedType = capitalizeFirstLetter type.toLowerCase()
+                    out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
 
             # Standard address field  with type metadata.
             when 'ADR'
@@ -685,19 +760,24 @@ VCardParser.toVCF = (model, picture = null, android = true) ->
                 urlPrefix = SOCIAL_URLS[type.toLowerCase()]
                 if urlPrefix?
                     url = "#{urlPrefix}#{value}"
+                else
+                    formattedType = capitalizeFirstLetter type.toLowerCase()
+                    formattedType = ";TYPE=#{formattedType}"
+
                 res = "X-SOCIALPROFILE#{formattedType};x-user=#{value}:#{url}"
                 out.push res
 
             # Export alerts in the weird iOS format. Clean \\\ that can become
             # too numerous.
             when 'ALERTS'
-                type = type.toLowerCase()
-                value = value.replace /\\\\\\/g, "\\"
-                res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
-                out.push res
 
+                if mode is 'ios'
+                    type = type.toLowerCase()
+                    value = value.replace /\\\\\\/g, "\\"
+                    res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
+                    out.push res
 
-            # Standard field with type metadata.
+            # It's a date we name this field as a date
             else
                 out.push "#{key}#{formattedType}:#{value}"
 

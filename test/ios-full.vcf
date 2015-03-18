@@ -4,6 +4,7 @@ PRODID:-//Apple Inc.//iOS 8.1.1//EN
 N:Contact;Full;Middle;Dr.;Suffix
 FN:Dr. Full Middle Contact Suffix
 NICKNAME:Pseudo
+NOTE:My note
 X-PHONETIC-FIRST-NAME:Phonetic First Name
 X-PHONETIC-MIDDLE-NAME:Phonetic Middle Name
 X-PHONETIC-LAST-NAME:Phonetic Last Name
