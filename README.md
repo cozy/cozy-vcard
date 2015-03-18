@@ -36,7 +36,17 @@ This vCard importer doesn't try to follow the official RFC. It is just made to
 handle properly vCards from major vendors: Google, Android, iOS, OSX and
 thunderbird.
 
-The vCard exporter follow the Google way to write vcards.
+The vCard exporter follow the Google way to write vcards. It can take an option
+to export the data to Android format or iOS format
+
+#### How data are handled in memory
+
+Data are stored as direct fields when vendors provide them that way. If not
+they are handled as "datapoints". One data datapoint has three fields:
+
+* `name`: the category of the data
+* `type`: the label of the field
+* `value`: the value of the field
 
 
 ## TODO
@@ -47,8 +57,7 @@ make this project perfect!
 Export: 
 
 * manage properly the `pref` attribute.
-* manage properly custom types (currently they are often exported in an
-  uppercase format).
+* manage properly custom types (currently they are often exported uppercased).
 
 Tests: 
 
