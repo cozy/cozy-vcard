@@ -435,7 +435,7 @@ class VCardParser
                     dp.type = dp['x-service-type']
 
         # iOS case for instant messaging accounts
-        if dp.name is 'impp'
+        if dp?.name is 'impp'
             dp.name = 'chat'
             dp.value = dp.value.split(':')[1]
 
