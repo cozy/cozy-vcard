@@ -135,7 +135,7 @@ getAndroidItem = (type, key, value) ->
         null
 
 
-# The parser will read all data from the vcard and generate a Cozy contact
+# The arser will read all data from the vcard and generate a Cozy contact
 # object from it.
 class VCardParser
 
@@ -701,7 +701,7 @@ exportName = (out, model) ->
 
 # Date of last change at ISO format.
 exportRev = (out, model) ->
-    if typeof(model.revision) is Date
+    if typeof(model.revision) is 'date'
         out.push "REV:#{model.revision.toISOString()}"
     else
         out.push "REV:#{model.revision}"
@@ -796,20 +796,22 @@ exportChat = (options) ->
 exportUrl = (options) ->
     {out, type, formattedType, value, mode, itemCounter} = options
 
-    itemCounter++
-    out.push "item#{itemCounter}.URL:#{value}"
+    if type?
+        itemCounter++
+        out.push "item#{itemCounter}.URL:#{value}"
+        if type not in ['PROFILE', 'BLOG']
+            formattedType = capitalizeFirstLetter type.toLowerCase()
+            if (mode is 'ios') and type in ['HOME', 'WORK', 'OTHER']
+                out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
+            else if mode is 'ios'
+                out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
+            else
+                out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
 
-    if type not in ['PROFILE', 'BLOG']
-        formattedType = capitalizeFirstLetter type.toLowerCase()
-        if (mode is 'ios') and type in ['HOME', 'WORK', 'OTHER']
-            out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
-        else if mode is 'ios'
-            out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
         else
-            out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
-
+            out.push "item#{itemCounter}.X-ABLabel:#{type}"
     else
-        out.push "item#{itemCounter}.X-ABLabel:#{type}"
+        out.push "URL:#{value}"
 
     return itemCounter
 
