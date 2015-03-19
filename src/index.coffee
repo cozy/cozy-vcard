@@ -307,6 +307,9 @@ class VCardParser
         if key is 'version'
             @currentversion = value
 
+        else if key is 'rev'
+            @currentContact.revision = value
+
         # Extract categories as tags. They are similare concepts.
         else if key is 'categories'
             @currentContact.tags = value.split /(?!\\),/
@@ -615,7 +618,7 @@ VCardParser.toVCF = (model, picture = null, mode = 'google') ->
     out.push "VERSION:3.0" # Version of the created vCard.
 
     exportUid out, model
-    exportRev out, model if model.rev?
+    exportRev out, model if model.revision?
     exportName out, model if model.n?
     exportBaseFields out, model
     exportTags out, model if model.tags? and model.tags.length > 0
@@ -698,10 +701,10 @@ exportName = (out, model) ->
 
 # Date of last change at ISO format.
 exportRev = (out, model) ->
-    if typeof(model.rev) is Date
-        out.push "REV:#{model.rev.toISOString()}"
+    if typeof(model.revision) is Date
+        out.push "REV:#{model.revision.toISOString()}"
     else
-        out.push "REV:#{model.rev}"
+        out.push "REV:#{model.revision}"
 
 
 # Handles tags/categories/groups.

@@ -508,7 +508,7 @@ describe 'Full contact vcard (tricky fields)', ->
             parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
             contact = parser.contacts[0]
             date = new Date().toISOString()
-            contact.rev = date
+            contact.revision = date
 
             vcf = VCardParser.toVCF(contact, null, 'google').split('\n')
 
@@ -574,7 +574,7 @@ describe 'Full contact vcard (tricky fields)', ->
             parser.read fs.readFileSync 'test/google-full.vcf', 'utf8'
             contact = parser.contacts[0]
             date = new Date().toISOString()
-            contact.rev = date
+            contact.revision = date
 
             vcf = VCardParser.toVCF(contact, null, 'android').split('\n')
 
@@ -615,7 +615,7 @@ describe 'Full contact vcard (tricky fields)', ->
             parser.read fs.readFileSync 'test/ios-full.vcf', 'utf8'
             contact = parser.contacts[0]
             date = new Date().toISOString()
-            contact.rev = date
+            contact.revision = date
 
             vcf = VCardParser.toVCF(contact, null, 'ios').split('\n')
 
