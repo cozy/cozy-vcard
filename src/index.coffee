@@ -867,11 +867,10 @@ exportSocial = (options) ->
 exportAlerts = (options) ->
     {out, type, formattedType, value, mode, itemCounter, key} = options
 
-    if mode is 'ios'
-        type = type.toLowerCase()
-        value = value.replace /\\\\\\/g, "\\"
-        res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
-        out.push res
+    type = type.toLowerCase()
+    value = value.replace /\\\\\\/g, "\\"
+    res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
+    out.push res
 
     return itemCounter
 
