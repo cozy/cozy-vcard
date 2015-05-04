@@ -676,3 +676,15 @@ describe 'Full contact vcard (tricky fields)', ->
                 test.should.be.ok
                 test = 'X-ACTIVITY-ALERT:type=text\\,snd=<none>'
                 test.should.be.ok
+
+describe 'non-regressions', ->
+
+    it '(Ref cozy-sync/#78) should not throw on corrupted contact', ->
+        contact =
+            id: '76273267326372'
+            n: 'a;b;c;d;e'
+            datapoints: [value: '+123242332323', name: undefined]
+
+        test = ->
+            vcf = VCardParser.toVCF(contact, null, 'ios')
+        test.should.not.throw()
