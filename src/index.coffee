@@ -625,7 +625,7 @@ VCardParser.toVCF = (model, picture = null, mode = 'google') ->
 
     # Handle datapoints and special cases.
     for i, datapoint of model.datapoints
-        continue unless datapoint.name and datapoint.value
+        continue unless datapoint.name? and datapoint.value?
         key = datapoint.name.toUpperCase()
         type = datapoint.type?.toUpperCase() or null
         value = datapoint.value
