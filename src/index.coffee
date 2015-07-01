@@ -326,7 +326,12 @@ class VCardParser
             else
                 nPartsCleaned = ['', '', '', '', '']
 
-                if nParts.length < 5
+                if nParts.length <= 5
+                    nParts.forEach (part, index) -> nPartsCleaned[index] = part
+
+                # Exception case for Firefox OS names
+                else if nParts.length is 6
+                    nPartsCleaned.push ''
                     nParts.forEach (part, index) -> nPartsCleaned[index] = part
 
                 else # if too much fields, merge everything in firstname.

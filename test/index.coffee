@@ -275,6 +275,14 @@ describe 'vCard Import', ->
             contactsEquals parser.contacts[8], expected
             checkGroups parser.contacts[8], expected
 
+        it "Firefox OS", ->
+            filePath = 'test/ffos.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
+            parser.contacts[9].n.should.equal 'Firefox;Barbara;;;;'
+            parser.contacts[9].fn.should.equal 'Barbara Firefox'
+            parser.contacts[9].datapoints[0].value.should.equal '+966238347324'
+            parser.contacts[9].datapoints[0].type.should.equal 'cell'
+
         it "Export then import", ->
             reparser = new VCardParser()
             reparser.read VCardParser.toVCF parser.contacts[0], null, false
