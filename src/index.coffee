@@ -22,7 +22,7 @@ regexps =
         endNonVCard:         /^END:(.*)$/i
 
         # vCard 2.1 files can use quoted-printable text.
-        simple: /^(version|fn|n|title|org|note|categories|bday|url|nickname)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple: /^(version|fn|n|title|org|note|categories|bday|url|nickname|uid)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex: /^([^\:\;]+);([^\:]+)\:(.+)$/
         property: /^(.+)=(.+)$/
@@ -56,7 +56,7 @@ ANDROID_RELATIONS = [
     'parent', 'partner', 'referred by', 'relative', 'sister', 'spouse'
 ]
 
-BASE_FIELDS = ['fn', 'bday', 'org', 'title', 'url', 'note', 'nickname']
+BASE_FIELDS = ['fn', 'bday', 'org', 'title', 'url', 'note', 'nickname', 'uid']
 
 SOCIAL_URLS =
     twitter: "http://twitter.com/"
