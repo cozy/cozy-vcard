@@ -379,10 +379,19 @@ class VCardParser
 
             # iOS way to store social profiles
             else if key.indexOf('socialprofile') is 0
-                elements = key.split(';')
-                if elements.length > 2
-                    type = elements[1].split('=')[1]
-                    user = elements[2].split('=')[1]
+                keyvalues = key.split(';')
+                elements = {}
+                for kv in keyvalues
+                  splitted = kv.split('=');
+                  elements[splitted[0].replace('x-','')] = splitted[1];
+
+                if(not elements.user)
+                    elements['user'] = value
+
+                if elements.type and elements.user
+                    type = elements['type']
+                    user = elements['user']
+
                     @currentContact.datapoints.push
                         name: 'social', type: type, value: user
 
