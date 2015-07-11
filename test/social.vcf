@@ -1,0 +1,11 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//iOS 8.1.2//EN
+N:de Cozy;Testé;;;
+FN:Testé de Cozy
+ORG:Société Cozycloud;
+UID:8925F4AF-9773-4030-ACDE-F12D78627DBD
+X-SOCIALPROFILE;type=facebook;x-user=mizrachiran;x-userid=807274769;x-displayname=Ran Mizrachi:http://www.facebook.com/mizrachiran
+X-SOCIALPROFILE;CHARSET=UTF-8;TYPE=facebook:mizrachiran
+X-SOCIALPROFILE;TYPE=facebook:mizrachiran
+END:VCARD
