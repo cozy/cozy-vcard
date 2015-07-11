@@ -685,6 +685,23 @@ describe 'Full contact vcard (tricky fields)', ->
                 test = 'X-ACTIVITY-ALERT:type=text\\,snd=<none>'
                 test.should.be.ok
 
+describe 'social-profile', ->
+    parser = new VCardParser()
+    parser.read fs.readFileSync 'test/social.vcf', 'utf8'
+    contact = parser.contacts[0]
+
+    it 'should parse all 3 instances of the X-SOCIALPROFILE fields', ->
+        contact.datapoints.length.should.be.equal 3
+
+    it 'contact should have 3 valid instances of social datapoints', ->
+        contact.datapoints.forEach (datapoint) ->
+            datapoint.name.should.be.ok
+            datapoint.type.should.be.ok
+            datapoint.value.should.be.ok
+            datapoint.name.should.equal 'social'
+            datapoint.type.should.equal 'facebook'
+            datapoint.value.should.equal 'mizrachiran'
+
 describe 'non-regressions', ->
 
     it '(Ref cozy-sync/#78) should not throw on corrupted contact', ->
