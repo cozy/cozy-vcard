@@ -1,6 +1,6 @@
 {
   "name": "cozy-vcard",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "Cozy-vcard provides vcard Parser and Objects",
   "main": "lib/index.js",
   "scripts": {
