@@ -702,6 +702,27 @@ describe 'social-profile', ->
             datapoint.type.should.equal 'facebook'
             datapoint.value.should.equal 'mizrachiran'
 
+describe 'multiple-vcards', ->
+    parser = new VCardParser()
+    parser.read fs.readFileSync 'test/multiple-cards.vcf', 'utf8'
+
+    it 'should parse 2 vcards successfully', ->
+        parser.contacts.length.should.be.equal 2
+
+    it 'first contact should be parse successfully', ->
+        contact1 = parser.contacts[0];
+        contact1.uid.should.be.ok
+        contact1.uid.should.equal '599'
+        contact1.fn.should.be.ok
+        contact1.fn.should.equal 'Dana Zohar'
+
+    it 'second contact should be parse successfully', ->
+        contact2 = parser.contacts[1];
+        contact2.uid.should.be.ok
+        contact2.uid.should.equal '2733'
+        contact2.fn.should.be.ok
+        contact2.fn.should.equal 'Daniel'
+
 describe 'non-regressions', ->
 
     it '(Ref cozy-sync/#78) should not throw on corrupted contact', ->
