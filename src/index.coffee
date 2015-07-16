@@ -463,7 +463,7 @@ class VCardParser
     handleComposedLine: (line) ->
         [all, itemidx, part, value] = line.match regexps.composedkey
 
-        if @currentIndex is null or @currentIndex isnt itemidx
+        if @currentIndex is null or @currentIndex isnt itemidx or !@currentDatapoint
             @handleCurrentSpecialCases()
             @storeCurrentDatapoint()
             @currentDatapoint = {}
