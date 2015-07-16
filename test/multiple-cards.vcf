@@ -1,0 +1,22 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//iOS 8.4//EN
+N:Zohar;Dana;;;
+FN:Dana Zohar
+TEL;type=CELL;type=VOICE;type=pref:0544333834
+item1.ADR;type=HOME;type=pref:;;;Tel Aviv;Tel Aviv;;Israel
+BDAY;value=date:1604-07-30
+X-SOCIALPROFILE;type=facebook;x-user=dana.zohar.14;x-userid=1349217247;x-displayname=Dana Zohar:http://www.facebook.com/dana.zohar.14
+UID:599
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//iOS 8.4//EN
+N:;Daniel;Ben Moshe;;
+FN:Daniel
+item1.EMAIL;type=INTERNET;type=pref:daniel14bm@gmail.com
+item1.X-ABLabel:בית
+item2.TEL;type=pref:0524657162
+item2.X-ABLabel:בית
+UID:2733
+END:VCARD
