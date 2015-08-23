@@ -17,7 +17,7 @@ easier to parse vcard files.
 var vcf = fs.readFileSync('test/friend.vcf', 'utf8');
 var vparser = new VCardParser(vcf);
 var vcontact = parser.contacts[0];
-var vsomeprop = contact.properties[0]:
+var vsomeprop = contact.datapoints[0]:
 // vcontact.org == 'SuperCorp'
 // someprop.value == '+33123456789'
 // someprop.name == 'tel'
