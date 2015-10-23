@@ -853,7 +853,10 @@ exportRelation = (options) ->
 exportAdr = (options) ->
     {out, type, formattedType, value, mode, itemCounter, key} = options
 
-    out.push "#{key}#{formattedType}:#{value.join ';'}"
+    # value may be a string or an array of strings
+    if Array.isArray value
+        value = value.join ';'
+    out.push "#{key}#{formattedType}:#{value}"
 
     return itemCounter
 
