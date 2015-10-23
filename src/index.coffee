@@ -382,8 +382,8 @@ class VCardParser
                 keyvalues = key.split(';')
                 elements = {}
                 for kv in keyvalues
-                  splitted = kv.split('=');
-                  elements[splitted[0].replace('x-','')] = splitted[1];
+                    splitted = kv.split('=')
+                    elements[splitted[0].replace('x-','')] = splitted[1]
 
                 if(not elements.user)
                     elements['user'] = value
@@ -463,7 +463,9 @@ class VCardParser
     handleComposedLine: (line) ->
         [all, itemidx, part, value] = line.match regexps.composedkey
 
-        if @currentIndex is null or @currentIndex isnt itemidx or !@currentDatapoint
+        if @currentIndex is null or \
+           @currentIndex isnt itemidx or \
+          !@currentDatapoint
             @handleCurrentSpecialCases()
             @storeCurrentDatapoint()
             @currentDatapoint = {}
