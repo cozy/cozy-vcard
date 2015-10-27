@@ -382,8 +382,8 @@ class VCardParser
                 keyvalues = key.split(';')
                 elements = {}
                 for kv in keyvalues
-                  splitted = kv.split('=');
-                  elements[splitted[0].replace('x-','')] = splitted[1];
+                    splitted = kv.split('=')
+                    elements[splitted[0].replace('x-','')] = splitted[1]
 
                 if(not elements.user)
                     elements['user'] = value
@@ -463,7 +463,9 @@ class VCardParser
     handleComposedLine: (line) ->
         [all, itemidx, part, value] = line.match regexps.composedkey
 
-        if @currentIndex is null or @currentIndex isnt itemidx or !@currentDatapoint
+        if @currentIndex is null or \
+           @currentIndex isnt itemidx or \
+          !@currentDatapoint
             @handleCurrentSpecialCases()
             @storeCurrentDatapoint()
             @currentDatapoint = {}
@@ -853,7 +855,10 @@ exportRelation = (options) ->
 exportAdr = (options) ->
     {out, type, formattedType, value, mode, itemCounter, key} = options
 
-    out.push "#{key}#{formattedType}:#{value.join ';'}"
+    # value may be a string or an array of strings
+    if Array.isArray value
+        value = value.join ';'
+    out.push "#{key}#{formattedType}:#{value}"
 
     return itemCounter
 
