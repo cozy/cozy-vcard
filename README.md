@@ -16,13 +16,13 @@ easier to parse vcard files.
 
 var vcf = fs.readFileSync('test/friend.vcf', 'utf8');
 var vparser = new VCardParser(vcf);
-var vcontact = parser.contacts[0];
-var vsomeprop = contact.datapoints[0]:
+var vcontact = vparser.contacts[0];
+var vsomeprop = vcontact.datapoints[0]:
 // vcontact.org == 'SuperCorp'
-// someprop.value == '+33123456789'
-// someprop.name == 'tel'
-// someprop.type == 'home'
-// someprop.pref == true
+// vsomeprop.value == '+33123456789'
+// vsomeprop.name == 'tel'
+// vsomeprop.type == 'home'
+// vsomeprop.pref == true
 
 
 # Export
