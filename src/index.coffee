@@ -22,7 +22,7 @@ regexps =
         endNonVCard:         /^END:(.*)$/i
 
         # vCard 2.1 files can use quoted-printable text.
-        simple: /^(version|fn|n|title|org|note|categories|bday|url|nickname|uid)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
+        simple: /^(version|fn|n|title|org|note|categories|bday|url|nickname|uid|tz|lang|geo|gender|kind)(;CHARSET=UTF-8)?(;ENCODING=QUOTED-PRINTABLE)?\:(.+)$/i
         composedkey: /^item(\d{1,2})\.([^\:]+):(.+)$/
         complex: /^([^\:\;]+);([^\:]+)\:(.+)$/
         property: /^(.+)=(.+)$/
@@ -57,6 +57,8 @@ ANDROID_RELATIONS = [
 ]
 
 BASE_FIELDS = ['fn', 'bday', 'org', 'title', 'url', 'note', 'nickname', 'uid']
+
+EXTRA_FIELDS = ['tz', 'lang', 'geo', 'gender', 'kind'];
 
 SOCIAL_URLS =
     twitter: "http://twitter.com/"
@@ -340,7 +342,7 @@ class VCardParser
                 @currentContact['n'] = nPartsCleaned.join ';'
 
 
-        # Direct field attached directly to the datapoint object.
+        # Direct field attached directly to the contact object.
         else if key in BASE_FIELDS
 
             # Ios include department in the org field (company;department)
@@ -355,6 +357,11 @@ class VCardParser
 
             else
                 @currentContact[key.toLowerCase()] = value
+
+        # Direct field attached directly to the contact object.
+        else if key in EXTRA_FIELDS
+
+            @currentContact[key.toLowerCase()] = value
 
 
     # Handle X- fields like (called extended fields by the RFC, those one are
@@ -637,6 +644,7 @@ VCardParser.toVCF = (model, picture = null, mode = 'google') ->
     exportRev out, model if model.revision?
     exportName out, model if model.n?
     exportBaseFields out, model
+    exportExtraFields out, model
     exportTags out, model if model.tags? and model.tags.length > 0
 
     # Handle datapoints and special cases.
@@ -710,6 +718,13 @@ exportBaseFields = (out, model) ->
 
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
+# Extra fields, simple with no extra attributes. 
+exportExtraFields = (out, model) ->
+    for prop in EXTRA_FIELDS
+        value = model[prop]
+        value = VCardParser.escapeText value if value
+
+        out.push "#{prop.toUpperCase()}:#{value}" if value
 
 # Name fields is already ready to export.
 exportName = (out, model) ->
