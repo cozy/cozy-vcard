@@ -38,5 +38,11 @@
   "title": "",
   "org":"",
   "bday": "1989-02-02",
-  "tags": ["groupe1", "groupe2"]
+  "tags": ["groupe1", "groupe2"],
+
+  "tz": "+0100",
+  "lang": "fr",
+  "geo": "geo:48.8352,2.2409",
+  "gender": "M",
+  "kind": "individual"
 }
