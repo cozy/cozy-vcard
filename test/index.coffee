@@ -170,6 +170,12 @@ describe 'vCard Import', ->
             if hasTags
                 obtained.tags.should.deep.equal expected.tags
 
+        checkExtraProperties = (obtained, expected) ->
+          
+            properties = ['tz', 'lang', 'geo', 'gender', 'kind']
+            properties.forEach (property) ->
+                obtained[property].should.equal expected[property]
+
         contactsEquals = (obtained, expected) ->
             properties = ['n', 'fn', 'note']
             properties.forEach (property) ->
@@ -282,6 +288,11 @@ describe 'vCard Import', ->
             parser.contacts[9].fn.should.equal 'Barbara Firefox'
             parser.contacts[9].datapoints[0].value.should.equal '+966238347324'
             parser.contacts[9].datapoints[0].type.should.equal 'cell'
+
+        it "Extra-Fields", ->
+            filePath = 'test/fixtures/contactA/extra-fields.vcf'
+            parser.read fs.readFileSync filePath, 'utf8'
+            checkExtraProperties parser.contacts[10], expected
 
         it "Export then import", ->
             reparser = new VCardParser()
