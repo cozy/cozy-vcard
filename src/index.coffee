@@ -524,7 +524,7 @@ class VCardParser
             @currentContact['photo'] = value
             @currentDatapoint = null
 
-        else if not key in ['email', 'tel', 'adr', 'url']
+        else if not (key in ['email', 'tel', 'adr', 'url'])
 
             #@TODO handle unkwnown keys
             @currentDatapoint = null
