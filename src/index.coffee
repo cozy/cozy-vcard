@@ -112,7 +112,10 @@ isValidDate = (date) ->
 
 
 capitalizeFirstLetter = (string) ->
-    "#{string.charAt(0).toUpperCase()}#{string.toLowerCase().slice(1)}"
+    if string?
+        "#{string.charAt(0).toUpperCase()}#{string.toLowerCase().slice(1)}"
+    else
+        ''
 
 
 getAndroidItem = (type, key, value) ->
@@ -402,7 +405,7 @@ class VCardParser
                 vals = value.split ','
                 if vals.length > 1
                     type = vals.splice(0, 1)[0]
-                    type = type.split('=')[1].replace /\\/g, ''
+                    type = type?.split('=')[1].replace /\\/g, ''
                     value = vals.join ','
                 @currentContact.datapoints.push
                     name: 'alerts', type: type, value: value
@@ -749,8 +752,8 @@ exportAbout = (options) ->
             out.push "item#{itemCounter}.X-ABLabel:#{formattedType}"
 
     # For Phonetic fields, hyphens should be added back
-    else if type.indexOf('PHONETIC') is 0
-        out.push "X-#{type.replace(/\s/g, '-')}:#{value}"
+    else if type?.indexOf('PHONETIC') is 0
+        out.push "X-#{type?.replace(/\s/g, '-')}:#{value}"
 
     # Check if it's a date. In that case an ABDATE field should be created.
     else if isValidDate value
@@ -790,14 +793,14 @@ exportChat = (options) ->
         if mode is 'ios'
             itemCounter++
 
-            serviceType = IOS_SERVICE_TYPES[type.toLowerCase()]
+            serviceType = IOS_SERVICE_TYPES[type?.toLowerCase()]
             if serviceType?
                 line = "item#{itemCounter}.IMPP;"
                 line += "X-SERVICE-TYPE=#{serviceType}:#{value}"
                 out.push line
 
             else
-                type = capitalizeFirstLetter type.toLowerCase()
+                type = capitalizeFirstLetter type?.toLowerCase()
                 line = "item#{itemCounter}.IMPP;"
                 line += "X-SERVICE-TYPE=#{type}:x-apple:#{value}"
                 out.push line
@@ -817,7 +820,7 @@ exportUrl = (options) ->
         itemCounter++
         out.push "item#{itemCounter}.URL:#{value}"
         if type not in ['PROFILE', 'BLOG']
-            formattedType = capitalizeFirstLetter type.toLowerCase()
+            formattedType = capitalizeFirstLetter type?.toLowerCase()
             if (mode is 'ios') and type in ['HOME', 'WORK', 'OTHER']
                 out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
             else if mode is 'ios'
@@ -845,7 +848,7 @@ exportRelation = (options) ->
     else
         itemCounter++
         out.push "item#{itemCounter}.X-ABRELATEDNAMES:#{value}"
-        formattedType = capitalizeFirstLetter type.toLowerCase()
+        formattedType = capitalizeFirstLetter type?.toLowerCase()
         out.push "item#{itemCounter}.X-ABLabel:_$!<#{formattedType}>!$_"
 
     return itemCounter
@@ -869,11 +872,11 @@ exportSocial = (options) ->
     {out, type, formattedType, value, mode, itemCounter, key} = options
 
     url = value
-    urlPrefix = SOCIAL_URLS[type.toLowerCase()]
+    urlPrefix = SOCIAL_URLS[type?.toLowerCase()]
     if urlPrefix?
         url = "#{urlPrefix}#{value}"
     else
-        formattedType = capitalizeFirstLetter type.toLowerCase()
+        formattedType = capitalizeFirstLetter type?.toLowerCase()
         formattedType = ";TYPE=#{formattedType}"
 
     res = "X-SOCIALPROFILE#{formattedType};x-user=#{value}:#{url}"
@@ -887,7 +890,7 @@ exportSocial = (options) ->
 exportAlerts = (options) ->
     {out, type, formattedType, value, mode, itemCounter, key} = options
 
-    type = type.toLowerCase()
+    type = type?.toLowerCase()
     value = value.replace /\\\\\\/g, "\\"
     res = "X-ACTIVITY-ALERT:type=#{type}\\,#{value}"
     out.push res
