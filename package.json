@@ -1,6 +1,6 @@
 {
   "name": "cozy-vcard",
-  "version": "0.2.14",
+  "version": "0.2.17",
   "description": "Cozy-vcard provides vcard Parser and Objects",
   "main": "lib/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mycozycloud/cozy-vcard"
+    "url": "https://github.com/cozy/cozy-vcard"
   },
   "keywords": [
     "ical",
