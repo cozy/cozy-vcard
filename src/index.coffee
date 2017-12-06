@@ -58,7 +58,7 @@ ANDROID_RELATIONS = [
 
 BASE_FIELDS = ['fn', 'bday', 'org', 'title', 'url', 'note', 'nickname', 'uid']
 
-EXTRA_FIELDS = ['tz', 'lang', 'geo', 'gender', 'kind'];
+EXTRA_FIELDS = ['tz', 'lang', 'geo', 'gender', 'kind']
 
 SOCIAL_URLS =
     twitter: "http://twitter.com/"
@@ -721,11 +721,14 @@ exportBaseFields = (out, model) ->
 
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
-# Extra fields, simple with no extra attributes. 
+# Extra fields, simple with no extra attributes.
 exportExtraFields = (out, model) ->
     for prop in EXTRA_FIELDS
         value = model[prop]
-        value = VCardParser.escapeText value if value
+        if prop is 'geo'
+            value = "geo:#{value[0]}:#{value[1]}" if value
+        else
+            value = VCardParser.escapeText value if value
 
         out.push "#{prop.toUpperCase()}:#{value}" if value
 
