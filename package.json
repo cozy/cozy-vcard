@@ -24,8 +24,8 @@
   "license": "see LICENSE",
   "readmeFilename": "README.md",
   "dependencies": {
-    "quoted-printable": "0.2.1",
-    "utf8": "2.0.0"
+    "quoted-printable": "^1.0.1",
+    "utf8": "^3.0.0"
   },
   "devDependencies": {
     "chai": "1.7.2",
