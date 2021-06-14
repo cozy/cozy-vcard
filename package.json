@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha test/index.coffee --reporter spec --compilers coffee:coffee-script/register --colors",
     "build": "coffee --compile --output lib/ src/",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
