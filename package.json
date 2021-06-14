@@ -4,7 +4,7 @@
   "description": "Cozy-vcard provides vcard Parser and Objects",
   "main": "lib/index.js",
   "scripts": {
-    "test": "mocha test/index.coffee --reporter spec --compilers coffee:coffee-script/register --colors",
+    "test": "mocha test/index.coffee --reporter spec --require coffeescript/register --colors",
     "build": "coffee --compile --output lib/ src/",
     "prepare": "npm run build"
   },
@@ -28,10 +28,10 @@
     "utf8": "^3.0.0"
   },
   "devDependencies": {
-    "chai": "1.7.2",
-    "coffee-script": "1.8.0",
-    "mocha": "1.12.0",
-    "should": "1.2.0",
-    "underscore": "1.8.2"
+    "chai": "^1.7.2",
+    "coffeescript": "^1.8.0",
+    "mocha": "^8.4.0",
+    "should": "^1.2.0",
+    "underscore": "^1.8.2"
   }
 }
