@@ -185,9 +185,6 @@ class VCardParser
         # same way. Some vCard have one or ther other, or both.
         # If both are present, we keep them.
         # If only one is present, we compute the other one.
-        if not @currentContact.n? and not @currentContact.fn?
-            console.error 'There should be at least a N field or a FN field'
-
         if (not @currentContact.n?) or @currentContact.n in ['', ';;;;']
             @currentContact.n = VCardParser.fnToN(@currentContact.fn).join ';'
 
