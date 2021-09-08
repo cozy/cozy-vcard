@@ -116,6 +116,12 @@ describe 'vCard Import', ->
             properties.forEach (property) ->
                 parser.contacts[1].should.have.property property
 
+        it "iOS", ->
+            parser.read fs.readFileSync 'test/ios-imported-contact.vcf', 'utf8'
+            properties = ['datapoints', 'n', 'fn', 'photo', 'tags']
+            properties.forEach (property) ->
+                parser.contacts[0].should.have.property property
+
         it "Android", ->
             parser.read fs.readFileSync 'test/android.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
