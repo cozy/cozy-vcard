@@ -102,7 +102,9 @@ describe 'Contact instances tools', ->
 describe 'vCard Import', ->
 
     describe 'Vendor VCards - simple set', ->
-        parser = new VCardParser()
+        parser = null
+        beforeEach ->
+            parser = new VCardParser()
 
         it "Google", ->
             parser.read fs.readFileSync 'test/google.vcf', 'utf8'
@@ -114,29 +116,41 @@ describe 'vCard Import', ->
             parser.read fs.readFileSync 'test/apple.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note', 'bday']
             properties.forEach (property) ->
-                parser.contacts[1].should.have.property property
+                parser.contacts[0].should.have.property property
+
+        it "iOS", ->
+            parser.read fs.readFileSync 'test/ios-imported-contact.vcf', 'utf8'
+            properties = ['datapoints', 'n', 'fn', 'photo', 'tags']
+            properties.forEach (property) ->
+                parser.contacts[0].should.have.property property
 
         it "Android", ->
             parser.read fs.readFileSync 'test/android.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
             properties.forEach (property) ->
-                parser.contacts[2].should.have.property property
+                parser.contacts[0].should.have.property property
 
         it "Android with quoted-printable text", ->
             filePath = 'test/android-quotedprintable.vcf'
             parser.read fs.readFileSync filePath, 'utf8'
             properties = ['datapoints', 'n', 'fn', 'org', 'title', 'note']
             properties.forEach (property) ->
-                parser.contacts[3].should.have.property property
+                parser.contacts[0].should.have.property property
 
         it "Cozycloud", ->
             parser.read fs.readFileSync 'test/cozy.vcf', 'utf8'
             properties = ['datapoints', 'n', 'fn', 'photo']
             properties.forEach (property) ->
-                parser.contacts[4].should.have.property property
-                parser.contacts[4].datapoints.length is 3
+                parser.contacts[0].should.have.property property
+                parser.contacts[0].datapoints.length is 3
 
         it "Export and import", ->
+            parser.read fs.readFileSync 'test/google.vcf', 'utf8'
+            parser.read fs.readFileSync 'test/apple.vcf', 'utf8'
+            parser.read fs.readFileSync 'test/android.vcf', 'utf8'
+            parser.read fs.readFileSync 'test/ios-imported-contact.vcf', 'utf8'
+            parser.read fs.readFileSync 'test/cozy.vcf', 'utf8'
+
             reparser = new VCardParser()
             reparser.read VCardParser.toVCF parser.contacts[0], null, false
             reparser.read VCardParser.toVCF parser.contacts[1], null, false
